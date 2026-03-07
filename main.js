@@ -6,27 +6,28 @@
 // --- POOL D'ENNEMIS ---
 const ENEMY_POOL = [
     // Tier 1 (nodes 1-2): low HP, low attack
-    { name: "Le Troll du Couloir",       hp: 200, attack: 10, tier: 1 },
-    { name: "L'Araignee Geante",         hp: 180, attack: 12, tier: 1 },
-    { name: "Le Gnome de Jardin",        hp: 150, attack: 8,  tier: 1 },
-    { name: "Le Lutins de Cornouailles", hp: 170, attack: 11, tier: 1 },
+    { id: "troll", hp: 200, attack: 10, tier: 1, image: "enemy_troll.png" },
+    { id: "spider", hp: 180, attack: 12, tier: 1, image: "giant-spider-ennemy.png" },
+    { id: "gnome", hp: 150, attack: 8, tier: 1, image: "enemy_troll.png" },
+    { id: "pixie", hp: 170, attack: 11, tier: 1, image: "enemy_troll.png" },
     // Tier 2 (nodes 4-5): medium HP, medium attack
-    { name: "Le Basilic Juvenile",       hp: 300, attack: 15, tier: 2 },
-    { name: "L'Epouvantard",            hp: 280, attack: 18, tier: 2 },
-    { name: "Le Hippogriffe Furieux",    hp: 320, attack: 14, tier: 2 },
-    { name: "Le Scroutt a Petard",       hp: 260, attack: 20, tier: 2 },
+    { id: "basilisk", hp: 300, attack: 15, tier: 2, image: "enemy_troll.png" },
+    { id: "boggart", hp: 280, attack: 18, tier: 2, image: "enemy_troll.png" },
+    { id: "hippogriff", hp: 320, attack: 14, tier: 2, image: "enemy_troll.png" },
+    { id: "skrewt", hp: 260, attack: 20, tier: 2, image: "enemy_troll.png" },
     // Tier 3 (nodes 7-8): high HP, high attack
-    { name: "Le Loup-Garou",            hp: 400, attack: 22, tier: 3 },
-    { name: "Le Magyar a Pointes",      hp: 450, attack: 25, tier: 3 },
-    { name: "L'Inferius",               hp: 380, attack: 28, tier: 3 },
-    { name: "Le Centaure Renegat",      hp: 420, attack: 20, tier: 3 },
+    { id: "werewolf", hp: 400, attack: 22, tier: 3, image: "enemy_troll.png" },
+    { id: "dragon", hp: 450, attack: 25, tier: 3, image: "enemy_troll.png" },
+    { id: "inferius", hp: 380, attack: 28, tier: 3, image: "enemy_troll.png" },
+    { id: "centaur", hp: 420, attack: 20, tier: 3, image: "enemy_troll.png" },
 ];
 
 const BOSS_POOL = [
     {
-        name: "Le Detraqueur",
+        id: "dementor",
         hp: 800,
         attack: 30,
+        image: "enemy_troll.png", // Default for now
         malus: {
             id: "no_ravenclaw",
             description: "Les cartes de Serdaigle ne font aucun degat.",
@@ -34,9 +35,10 @@ const BOSS_POOL = [
         }
     },
     {
-        name: "Lord Voldemort",
+        id: "voldemort",
         hp: 1000,
         attack: 35,
+        image: "enemy_troll.png",
         malus: {
             id: "no_low_cards",
             description: "Les cartes de rang 2 a 6 ne font aucun degat.",
@@ -44,9 +46,10 @@ const BOSS_POOL = [
         }
     },
     {
-        name: "Bellatrix Lestrange",
+        id: "bellatrix",
         hp: 700,
         attack: 40,
+        image: "enemy_troll.png",
         malus: {
             id: "no_hufflepuff",
             description: "Les cartes de Poufsouffle ne font aucun degat.",
@@ -57,9 +60,9 @@ const BOSS_POOL = [
 
 // --- TYPES DE NOEUDS & TEMPLATE DE RUN ---
 const NODE_TYPES = {
-    COMBAT:  "combat",
-    SHOP:    "shop",
-    BOSS:    "boss",
+    COMBAT: "combat",
+    SHOP: "shop",
+    BOSS: "boss",
     DORTOIR: "dortoir"
 };
 
@@ -127,15 +130,15 @@ const availableBlessings = [
 
 // --- GRIMOIRE DES SORTILÈGES ---
 const combosGuide = [
-    { key: "royal_flush", base: 2000, cards: ["gryffindor_10","gryffindor_11","gryffindor_12","gryffindor_13","gryffindor_14"] },
-    { key: "straight_flush", base: 600, cards: ["slytherin_5","slytherin_6","slytherin_7","slytherin_8","slytherin_9"] },
-    { key: "four_of_a_kind", base: 400, cards: ["gryffindor_7","hufflepuff_7","ravenclaw_7","slytherin_7"] },
-    { key: "full_house", base: 175, cards: ["gryffindor_9","hufflepuff_9","ravenclaw_9","gryffindor_5","slytherin_5"] },
-    { key: "flush", base: 125, cards: ["ravenclaw_2","ravenclaw_5","ravenclaw_8","ravenclaw_11","ravenclaw_13"] },
-    { key: "straight", base: 100, cards: ["gryffindor_4","slytherin_5","hufflepuff_6","ravenclaw_7","gryffindor_8"] },
-    { key: "three_of_a_kind", base: 80, cards: ["gryffindor_11","hufflepuff_11","slytherin_11"] },
-    { key: "two_pair", base: 40, cards: ["gryffindor_3","hufflepuff_3","ravenclaw_9","slytherin_9"] },
-    { key: "pair", base: 20, cards: ["gryffindor_14","hufflepuff_14"] },
+    { key: "royal_flush", base: 2000, cards: ["gryffindor_10", "gryffindor_11", "gryffindor_12", "gryffindor_13", "gryffindor_14"] },
+    { key: "straight_flush", base: 600, cards: ["slytherin_5", "slytherin_6", "slytherin_7", "slytherin_8", "slytherin_9"] },
+    { key: "four_of_a_kind", base: 400, cards: ["gryffindor_7", "hufflepuff_7", "ravenclaw_7", "slytherin_7"] },
+    { key: "full_house", base: 175, cards: ["gryffindor_9", "hufflepuff_9", "ravenclaw_9", "gryffindor_5", "slytherin_5"] },
+    { key: "flush", base: 125, cards: ["ravenclaw_2", "ravenclaw_5", "ravenclaw_8", "ravenclaw_11", "ravenclaw_13"] },
+    { key: "straight", base: 100, cards: ["gryffindor_4", "slytherin_5", "hufflepuff_6", "ravenclaw_7", "gryffindor_8"] },
+    { key: "three_of_a_kind", base: 80, cards: ["gryffindor_11", "hufflepuff_11", "slytherin_11"] },
+    { key: "two_pair", base: 40, cards: ["gryffindor_3", "hufflepuff_3", "ravenclaw_9", "slytherin_9"] },
+    { key: "pair", base: 20, cards: ["gryffindor_14", "hufflepuff_14"] },
     { key: "high_card", base: 10, cards: ["slytherin_12"] }
 ];
 
@@ -148,9 +151,9 @@ function generateRun() {
 
     // Pick a random boss
     const boss = BOSS_POOL[Math.floor(Math.random() * BOSS_POOL.length)];
-    state.run.stats.bossName = boss.name;
+    state.run.stats.bossId = boss.id;
 
-    const usedEnemyNames = new Set();
+    const usedEnemyIds = new Set();
 
     RUN_TEMPLATE.forEach((columnTemplate, colIndex) => {
         const column = {
@@ -165,14 +168,14 @@ function generateRun() {
             };
 
             if (template.type === NODE_TYPES.COMBAT) {
-                const tierEnemies = ENEMY_POOL.filter(e => e.tier === template.tier && !usedEnemyNames.has(e.name));
+                const tierEnemies = ENEMY_POOL.filter(e => e.tier === template.tier && !usedEnemyIds.has(e.id));
                 const pool = tierEnemies.length > 0 ? tierEnemies : ENEMY_POOL.filter(e => e.tier === template.tier);
                 const picked = pool[Math.floor(Math.random() * pool.length)];
-                usedEnemyNames.add(picked.name);
-                node.enemy = { name: picked.name, hp: picked.hp, maxHp: picked.hp, attack: picked.attack };
+                usedEnemyIds.add(picked.id);
+                node.enemy = { id: picked.id, hp: picked.hp, maxHp: picked.hp, attack: picked.attack, image: picked.image };
                 node.tier = template.tier;
             } else if (template.type === NODE_TYPES.BOSS) {
-                node.enemy = { name: boss.name, hp: boss.hp, maxHp: boss.hp, attack: boss.attack };
+                node.enemy = { id: boss.id, hp: boss.hp, maxHp: boss.hp, attack: boss.attack, image: boss.image };
                 node.malus = boss.malus;
             }
             // Shop and Dortoir nodes have no enemy
@@ -199,7 +202,7 @@ function renderMap() {
         if (colIndex > 0) {
             const connector = document.createElement('div');
             const prevCompleted = state.run.columns[colIndex - 1].nodes.every(n => n.status === 'completed') ||
-                                  state.run.columns[colIndex - 1].selectedNodeIndex !== null;
+                state.run.columns[colIndex - 1].selectedNodeIndex !== null;
             connector.className = `map-connector ${prevCompleted ? 'completed' : ''}`;
             container.appendChild(connector);
         }
@@ -259,9 +262,9 @@ function renderMap() {
 }
 
 function getNodeLabel(node) {
-    if (node.type === NODE_TYPES.COMBAT) return node.enemy.name;
+    if (node.type === NODE_TYPES.COMBAT) return t(`enemies.${node.enemy.id}`);
     if (node.type === NODE_TYPES.SHOP) return 'Diagon Alley';
-    if (node.type === NODE_TYPES.BOSS) return node.enemy.name;
+    if (node.type === NODE_TYPES.BOSS) return t(`enemies.${node.enemy.id}`);
     if (node.type === NODE_TYPES.DORTOIR) return 'Dortoir';
     return '';
 }
@@ -291,13 +294,13 @@ function updateMapNodeInfo() {
     btnEnter.disabled = false;
 
     if (selectedNode.type === NODE_TYPES.COMBAT) {
-        nameEl.innerText = selectedNode.enemy.name;
+        nameEl.innerText = t(`enemies.${selectedNode.enemy.id}`);
         descEl.innerText = `PV: ${selectedNode.enemy.hp} | Attaque: ${selectedNode.enemy.attack}`;
     } else if (selectedNode.type === NODE_TYPES.SHOP) {
         nameEl.innerText = "Diagon Alley";
         descEl.innerText = "Depensez vos Galleons pour des artefacts magiques.";
     } else if (selectedNode.type === NODE_TYPES.BOSS) {
-        nameEl.innerText = `BOSS: ${selectedNode.enemy.name}`;
+        nameEl.innerText = `BOSS: ${t(`enemies.${selectedNode.enemy.id}`)}`;
         descEl.innerText = `PV: ${selectedNode.enemy.hp} | ${selectedNode.malus.description}`;
     } else if (selectedNode.type === NODE_TYPES.DORTOIR) {
         const healAmount = Math.floor(state.player.maxHp * 0.3);
@@ -326,6 +329,7 @@ async function enterCurrentNode() {
 
         // Update enemy zone UI
         document.getElementById('enemy-hp-overlay').innerText = state.enemy.hp;
+        document.getElementById('enemy-portrait').style.backgroundImage = `url('assets/${state.enemy.image}')`;
 
         // Show malus if boss
         if (currentNode.malus) {
@@ -437,7 +441,7 @@ function showRunVictoryScreen() {
     document.getElementById('stat-enemies').innerText = state.run.stats.enemiesDefeated;
     document.getElementById('stat-damage').innerText = state.run.stats.totalDamageDealt;
     document.getElementById('stat-gold').innerText = state.run.stats.totalGoldEarned;
-    document.getElementById('stat-boss').innerText = state.run.stats.bossName;
+    document.getElementById('stat-boss').innerText = t(`enemies.${state.run.stats.bossId}`);
 
     gsap.to(overlay, { opacity: 1, duration: 1 });
 }
@@ -1063,7 +1067,7 @@ function showEndOverlay(isWin) {
 function initComboModal() {
     const list = document.getElementById('combo-list');
     list.innerHTML = '';
-    const romanNumerals = ['I','II','III','IV','V','VI','VII','VIII','IX','X'];
+    const romanNumerals = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'];
 
     combosGuide.forEach((c, idx) => {
         const li = document.createElement('li');

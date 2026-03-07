@@ -67,7 +67,21 @@ const translations = {
             eau_vive: { name: "Potion Polyjuice", desc: "Le sortilège 'Harmonie de Maison' (Couleur) inflige +30 dégâts de base." }
         },
         enemies: {
-            troll: "Le Troll du Couloir"
+            troll: "Le Troll du Couloir",
+            spider: "L'Araignee Geante",
+            gnome: "Le Gnome de Jardin",
+            pixie: "Le Lutin de Cornouailles",
+            basilisk: "Le Basilic Juvenile",
+            boggart: "L'Epouvantard",
+            hippogriff: "L'Hippogriffe Furieux",
+            skrewt: "Le Scroutt a Petard",
+            werewolf: "Le Loup-Garou",
+            dragon: "Le Magyar a Pointes",
+            inferius: "L'Inferius",
+            centaur: "Le Centaure Renegat",
+            dementor: "Le Detraqueur",
+            voldemort: "Lord Voldemort",
+            bellatrix: "Bellatrix Lestrange"
         }
     },
     en: {
@@ -138,7 +152,21 @@ const translations = {
             eau_vive: { name: "Polyjuice Potion", desc: "The 'House Harmony' (Flush) spell deals +30 base damage." }
         },
         enemies: {
-            troll: "The Hallway Troll"
+            troll: "The Hallway Troll",
+            spider: "The Giant Spider",
+            gnome: "Garden Gnome",
+            pixie: "Cornish Pixie",
+            basilisk: "Juvenile Basilisk",
+            boggart: "Boggart",
+            hippogriff: "Furious Hippogriff",
+            skrewt: "Blast-Ended Skrewt",
+            werewolf: "Werewolf",
+            dragon: "Hungarian Horntail",
+            inferius: "Inferius",
+            centaur: "Renegade Centaur",
+            dementor: "Dementor",
+            voldemort: "Lord Voldemort",
+            bellatrix: "Bellatrix Lestrange"
         }
     },
     it: {
@@ -209,7 +237,21 @@ const translations = {
             eau_vive: { name: "Pozione Polisucco", desc: "L'incantesimo 'Armonia della Casa' (Colore) infligge +30 danni base." }
         },
         enemies: {
-            troll: "Il Troll del Corridoio"
+            troll: "Il Troll del Corridoio",
+            spider: "Il Ragno Gigante",
+            gnome: "Gnomo da Giardino",
+            pixie: "Folletto della Cornovaglia",
+            basilisk: "Basilisco Giovanile",
+            boggart: "Molliccio",
+            hippogriff: "Ippogrifo Furioso",
+            skrewt: "Schiopodo da Sparo",
+            werewolf: "Lupo Mannaro",
+            dragon: "Ungaro Spinato",
+            inferius: "Inferius",
+            centaur: "Centauro Rinnegato",
+            dementor: "Dissennatore",
+            voldemort: "Lord Voldemort",
+            bellatrix: "Bellatrix Lestrange"
         }
     }
 };
