@@ -1,0 +1,1636 @@
+/* style.css - La Main du Sorcier (GSAP Standards) */
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Metamorphous&family=Inter:wght@300;400;600&display=swap');
+
+:root {
+    --bg-dark: #0a0804;
+    --bg-card-dark: #1a1208;
+    --text-primary: #e8dfc0;
+    --text-secondary: #9a9080;
+    --accent-gold: #c7a13b;
+    --accent-red: #740001;
+    --border-color: #3a2e1a;
+    --card-width: 80px;
+    --card-height: 120px;
+
+    /* House Colors */
+    --gryffindor-gold: #c7a13b;
+    --gryffindor-red: #740001;
+    --hufflepuff-yellow: #eeb939;
+    --hufflepuff-black: #372e29;
+    --ravenclaw-blue: #0e1a40;
+    --ravenclaw-bronze: #946b2d;
+    --slytherin-green: #1a472a;
+    --slytherin-silver: #5d5d5d;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: #1a1005;
+    background-image: url('assets/Gemini_Generated_Image_446xcq446xcq446x.png');
+    background-size: cover;
+    background-position: center;
+    color: var(--text-primary);
+    font-family: 'Inter', sans-serif;
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#game-container {
+    width: 100%;
+    max-width: 1200px;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    gap: 20px;
+    position: relative;
+}
+
+#language-switcher {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    display: flex;
+    gap: 10px;
+    z-index: 1000;
+}
+
+#language-switcher button {
+    padding: 6px 12px;
+    font-size: 0.8rem;
+    background: rgba(26, 18, 8, 0.8);
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    cursor: pointer;
+    min-width: 50px;
+    transition: all 0.2s ease;
+}
+
+#language-switcher button:hover,
+#language-switcher button.active {
+    background: var(--accent-gold);
+    color: #000;
+    border-color: var(--accent-gold);
+    font-weight: bold;
+}
+
+/* Zone Haute: Ennemi */
+#enemy-zone {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    position: relative;
+}
+
+#boss-card {
+    width: 450px;
+    height: 350px;
+    /* Format 3:2 strict  */
+    flex-shrink: 0;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+    padding: 0;
+    position: relative;
+    overflow: visible;
+}
+
+#enemy-portrait {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url('assets/enemy_troll.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    z-index: 1;
+}
+
+.overlay-value {
+    position: absolute;
+    font-family: 'Cinzel', serif;
+    font-size: 2.2rem;
+    font-weight: 700;
+    z-index: 10;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    letter-spacing: -2px;
+
+    /* Effet Métal Satiné / Bronze Fondu */
+    background: linear-gradient(135deg,
+            #ffffff 0%,
+            #e5e5e5 25%,
+            #a6a6a6 50%,
+            #7a7a7a 51%,
+            #b2b2b2 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+
+    /* Simulation de Relief Réaliste (Bevel & Emboss) */
+    /* 1. L'ombre portée douce */
+    /* 2. Le ciselage sombre du bas */
+    /* 3. Le reflet brillant du haut edge */
+    filter:
+        drop-shadow(2px 4px 6px rgba(0, 0, 0, 0.8)) drop-shadow(0px -1px 0px rgba(255, 255, 255, 0.6)) drop-shadow(0px 1px 0px rgba(0, 0, 0, 0.5));
+
+    /* On force une opacité légèrement réduite pour fusionner avec le parchemin */
+    opacity: 0.95;
+    -webkit-font-smoothing: antialiased;
+}
+
+#enemy-hp-overlay {
+    bottom: 20px;
+    right: 15px;
+    width: 80px;
+    height: 80px;
+    font-size: 2.6rem;
+
+    /* Effet Métal Rubis / Rouge Sang */
+    background: linear-gradient(to bottom,
+            #ff9a9a 0%,
+            #e74c3c 25%,
+            #962d22 50%,
+            #c0392b 51%,
+            #ff4d4d 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+}
+
+
+@keyframes floating {
+
+    0%,
+    100% {
+        transform: translateY(0) rotate(0deg);
+    }
+
+    50% {
+        transform: translateY(-5px);
+    }
+}
+
+@keyframes pulse-magic {
+
+    0%,
+    100% {
+        opacity: 0.2;
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 0.6;
+        transform: scale(1.02);
+    }
+}
+
+#enemy-info {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+}
+
+#enemy-hp-bar {
+    width: 80%;
+    height: 15px;
+    background: #000;
+    border: 1px solid #3a2e1a;
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+#enemy-hp-fill {
+    height: 100%;
+    background: linear-gradient(to right, #8e44ad, #9b59b6);
+    width: 100%;
+    transition: width 0.3s ease;
+}
+
+#enemy-hp-text {
+    font-family: 'Metamorphous', cursive;
+    font-size: 1.1rem;
+    color: #fff;
+    margin: 0;
+}
+
+#enemy-name {
+    font-family: 'Cinzel', serif;
+    font-size: 2.2rem;
+    color: var(--accent-gold);
+    margin-bottom: 5px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+    background: rgba(26, 18, 8, 0.9);
+    padding: 10px 30px;
+    border: 2px solid var(--accent-gold);
+    border-radius: 4px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8), 2px 2px 0px #1a1005;
+}
+
+#enemy-intent {
+    font-family: 'Inter', sans-serif;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin-bottom: 20px;
+    font-style: italic;
+    text-transform: uppercase;
+}
+
+.hp-bar-container {
+    width: 350px;
+    height: 30px;
+    background: #000;
+    border: 2px solid var(--border-color);
+    position: relative;
+    border-radius: 4px;
+    overflow: hidden;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+    margin: 0 auto;
+}
+
+#hp-bar-fill {
+    height: 100%;
+    background: linear-gradient(to right, #4a0000, var(--gryffindor-red));
+}
+
+#hp-text {
+    position: absolute;
+    width: 100%;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    font-weight: 800;
+    font-size: 1rem;
+    text-shadow: 1px 1px 2px black;
+    z-index: 5;
+}
+
+/* Zone Centrale: Tableau */
+#play-area {
+    flex: 3;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    padding-top: 20px;
+    overflow: visible;
+    z-index: 1;
+    /* Plus bas que le HUD et la main du joueur */
+}
+
+#player-stats {
+    position: fixed;
+    bottom: 40px;
+    right: 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    padding: 15px 20px;
+    background: rgba(15, 12, 8, 0.85);
+    background-image:
+        linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)),
+        radial-gradient(circle at top left, rgba(199, 161, 59, 0.15), transparent);
+    backdrop-filter: blur(12px);
+    border-radius: 8px;
+    border: 2px solid #3c322a;
+    box-shadow:
+        0 20px 40px rgba(0, 0, 0, 0.8),
+        inset 0 0 15px rgba(0, 0, 0, 0.5);
+    z-index: 100;
+}
+
+.stat-box {
+    display: flex;
+    flex-direction: row-reverse;
+    /* Icons on the right */
+    justify-content: flex-start;
+    align-items: center;
+    gap: 15px;
+    padding: 5px 0;
+}
+
+.stat-box:not(:last-child) {
+    border-bottom: 1px solid rgba(199, 161, 59, 0.1);
+}
+
+.stat-label {
+    width: 42px;
+    height: 42px;
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    border-radius: 50%;
+    border: 2px solid var(--accent-gold);
+    box-shadow: 0 0 10px rgba(199, 161, 59, 0.3);
+    flex-shrink: 0;
+}
+
+.stat-value {
+    font-family: 'Metamorphous', cursive;
+    font-size: 1.4rem;
+    color: #e8dfc0;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+    letter-spacing: 1px;
+}
+
+#label-galleons {
+    background-image: url('assets/icon_galleon.png');
+}
+
+#label-hp {
+    background-image: url('assets/icon_heart.png');
+}
+
+#label-discards {
+    background-image: url('assets/icon_recycle.png');
+}
+
+.stat-value {
+    font-family: 'Metamorphous', cursive;
+    font-size: 1.2rem;
+    color: #fff;
+    text-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
+}
+
+
+/* detected-combo moved below */
+
+#combo-name {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0px;
+    height: 100%;
+}
+
+/* Zone Basse: Joueur */
+#player-zone {
+    flex: 2;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-around;
+    position: relative;
+    z-index: 100;
+    width: 100%;
+}
+
+#action-bar {
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    gap: 300px;
+    /* Espace fixe pour le combo au milieu */
+    width: 100%;
+    max-width: 1000px;
+    margin: 0 auto;
+    padding-bottom: 40px;
+    z-index: 100;
+    position: relative;
+    height: 120px;
+}
+
+#hand-container {
+    display: flex;
+    gap: 15px;
+    padding-bottom: 30px;
+    height: 320px;
+    /* Augmenté pour éviter le rognage lors des animations */
+    align-items: flex-end;
+}
+
+/* --- CARTES PREMIUM (FLAT PARALLAX) --- */
+.card-wrapper {
+    width: 140px;
+    height: 210px;
+    /* Légèrement augmenté pour les cartes premium */
+    cursor: pointer;
+    position: relative;
+    user-select: none;
+    transform-origin: bottom center;
+    z-index: 10;
+}
+
+.card-container {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    border-radius: 4px;
+    border: 1px solid #3a2e1a;
+    box-shadow:
+        1px 1px 0px #3a2e1a,
+        2px 2px 0px #1a1005,
+        5px 15px 30px rgba(0, 0, 0, 0.8);
+    overflow: hidden;
+}
+
+/* Vignettage optionnel pour les images de cartes */
+.card-container::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(circle, transparent 70%, rgba(0, 0, 0, 0.4) 100%);
+    z-index: 5;
+}
+
+/* On change le halo quand sélectionnée */
+.card-container.selected {
+    box-shadow:
+        0 0 25px 8px rgba(120, 80, 255, 0.8),
+        0 0 50px 15px rgba(120, 80, 255, 0.4);
+    border-color: #a29bfe;
+    transform: translateY(-20px) scale(1.05);
+}
+
+.card-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-size: 100% 100%;
+    /* S'assure que toute l'image est visible */
+    background-position: top center;
+    border-radius: 12px;
+    pointer-events: none;
+}
+
+.full-image {
+    z-index: 1;
+}
+
+/* Dégâts flottants */
+.floating-damage {
+    position: absolute;
+    font-family: 'Cinzel', serif;
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: var(--accent-red);
+    pointer-events: none;
+    z-index: 1000;
+    text-shadow: 2px 2px 0 black;
+}
+
+#detected-combo {
+    position: absolute;
+    left: 50%;
+    bottom: 0px;
+    /* Ajusté car sorti de l'action-bar */
+    transform: translateX(-50%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: 'Cinzel', serif;
+    text-align: center;
+    pointer-events: none;
+    min-width: 250px;
+    height: 100px;
+    z-index: 105;
+}
+
+.action-btn-wrapper {
+    pointer-events: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+}
+
+.action-btn {
+    width: 220px;
+    height: 70px;
+    border-radius: 4px;
+    /* Rectangulaire style plaque */
+    font-family: 'Cinzel', serif;
+    font-weight: bold;
+    font-size: 1.4rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    cursor: pointer;
+    border: 3px solid #3c322a;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow:
+        0 10px 20px rgba(0, 0, 0, 0.6),
+        inset 0 0 15px rgba(0, 0, 0, 0.5);
+    position: relative;
+    color: #e8dfc0;
+}
+
+.action-btn::after {
+    content: '';
+    position: absolute;
+    inset: 4px;
+    border: 1px solid rgba(232, 223, 192, 0.15);
+    pointer-events: none;
+}
+
+#btn-play {
+    background-color: #1b2a2a;
+    /* Stone Blue-ish */
+    border-color: #2a4a4a;
+    background-image: linear-gradient(to bottom, #1b2a2a, #0d1515);
+}
+
+#btn-play:hover:not(:disabled) {
+    background-color: #2a4a4a;
+    box-shadow: 0 0 20px rgba(42, 74, 74, 0.4);
+    transform: translateY(-2px);
+}
+
+#btn-discard {
+    background-color: #2a1b1b;
+    /* Stone Red-ish */
+    border-color: #4a2a2a;
+    background-image: linear-gradient(to bottom, #2a1b1b, #150d0d);
+}
+
+#btn-discard:hover:not(:disabled) {
+    background-color: #4a2a2a;
+    box-shadow: 0 0 20px rgba(74, 42, 42, 0.4);
+    transform: translateY(-2px);
+}
+
+#discards-badge {
+    position: absolute;
+    bottom: -22px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 44px;
+    height: 44px;
+    background: #3c2a1a;
+    border: 2px solid #5c4a3a;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    clip-path: polygon(50% 0%, 93% 25%, 93% 75%, 50% 100%, 7% 75%, 7% 25%);
+    font-family: 'Metamorphous', cursive;
+    color: #ffd700;
+    font-size: 1.3rem;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.8);
+    z-index: 10;
+    transition: opacity 0.2s ease;
+}
+
+#btn-discard:disabled~#discards-badge {
+    opacity: 0.3;
+}
+
+#grimoire-btn {
+    position: fixed;
+    bottom: 40px;
+    left: 40px;
+    width: 65px;
+    height: 65px;
+    background-image: url('assets/icon_guide.png');
+    background-size: 65%;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-color: rgba(15, 12, 8, 0.9);
+    border: 2px solid var(--accent-gold);
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow:
+        0 15px 30px rgba(0, 0, 0, 0.8),
+        inset 0 0 10px rgba(199, 161, 59, 0.2);
+    z-index: 200;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+#grimoire-btn:hover {
+    transform: scale(1.15) rotate(5deg);
+    background-color: #2a1b0a;
+    box-shadow: 0 0 20px rgba(199, 161, 59, 0.4);
+}
+
+button {
+    padding: 10px 20px;
+    border-radius: 4px;
+    font-family: 'Cinzel', serif;
+    font-weight: bold;
+    font-size: 1.5rem;
+    /* Emojis plus grands pour les boutons */
+    cursor: pointer;
+    border: none;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+button:disabled {
+    opacity: 0.2;
+    pointer-events: none;
+}
+
+.primary-btn {
+    background-color: var(--accent-gold);
+    color: #000;
+    box-shadow: 0 4px 0 #8d7340;
+}
+
+.secondary-btn {
+    background-color: transparent;
+    color: var(--text-secondary);
+    border: 1px solid var(--border-color);
+}
+
+/* Overlay */
+#game-over-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.95);
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+    backdrop-filter: blur(10px);
+}
+
+#game-over-title {
+    font-size: 5rem;
+    font-family: 'Cinzel', serif;
+    margin-bottom: 20px;
+}
+
+.win {
+    color: var(--accent-gold);
+}
+
+.lose {
+    color: var(--accent-red);
+}
+
+/* --- DIAGON ALLEY --- */
+#sanctuary-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at center, #1a1505 0%, #0a0804 100%);
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 1500;
+    padding: 40px;
+}
+
+#sanctuary-title {
+    font-family: 'Cinzel', serif;
+    font-size: 4rem;
+    color: var(--accent-gold);
+    margin-bottom: 10px;
+    letter-spacing: 15px;
+    text-shadow: 0 0 30px rgba(197, 160, 89, 0.4);
+}
+
+#sanctuary-gold-display {
+    font-family: 'Metamorphous', cursive;
+    font-size: 1.5rem;
+    color: var(--accent-gold);
+    margin-bottom: 50px;
+}
+
+#blessings-container {
+    display: flex;
+    gap: 30px;
+    margin-bottom: 60px;
+    perspective: 1000px;
+}
+
+.blessing-card {
+    width: 250px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--accent-gold);
+    padding: 25px;
+    border-radius: 12px;
+    text-align: center;
+    transition: transform 0.3s ease, background 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 350px;
+}
+
+.blessing-card:hover {
+    transform: translateY(-10px) rotateY(5deg);
+    background: rgba(197, 160, 89, 0.08);
+}
+
+.blessing-name {
+    font-family: 'Cinzel', serif;
+    font-size: 1.4rem;
+    color: var(--accent-gold);
+    margin-bottom: 15px;
+}
+
+.blessing-desc {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    margin-bottom: 20px;
+    flex: 1;
+}
+
+.blessing-cost {
+    font-family: 'Metamorphous', cursive;
+    font-size: 1.2rem;
+    color: white;
+    margin-bottom: 15px;
+}
+
+.buy-btn {
+    background: transparent;
+    border: 1px solid var(--accent-gold);
+    color: var(--accent-gold);
+    padding: 10px;
+    cursor: pointer;
+    font-family: 'Cinzel', serif;
+    transition: all 0.2s ease;
+}
+
+.buy-btn:hover:not(:disabled) {
+    background: var(--accent-gold);
+    color: black;
+}
+
+.buy-btn:disabled {
+    opacity: 0.3;
+    border-color: #555;
+    color: #555;
+    cursor: default;
+}
+
+#btn-continue {
+    margin-top: 20px;
+    padding: 15px 50px;
+}
+
+@media (max-width: 900px) {
+    #table-zone {
+        flex-direction: column;
+    }
+
+    #player-stats {
+        width: 100%;
+        flex-direction: row;
+        padding: 10px;
+    }
+}
+
+@media (max-width: 900px) {
+    #blessings-container {
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    #sanctuary-screen {
+        overflow-y: auto;
+        display: none;
+        padding: 20px;
+    }
+}
+
+/* --- INDEX DES COMBINAISONS (MODAL) --- */
+.guide-btn {
+    width: 100%;
+    margin-top: auto;
+    background: transparent;
+    border: 1px solid var(--accent-gold);
+    color: var(--accent-gold);
+    padding: 10px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    font-family: 'Cinzel', serif;
+    transition: all 0.3s ease;
+    border-radius: 4px;
+}
+
+.guide-btn:hover {
+    background: rgba(197, 160, 89, 0.1);
+    box-shadow: 0 0 10px rgba(197, 160, 89, 0.2);
+}
+
+/* --- GRIMOIRE PREMIUM --- */
+#combo-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 3000;
+    backdrop-filter: blur(12px);
+    padding: 20px;
+}
+
+.modal-hidden {
+    visibility: hidden;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.modal-content {
+    /* Leather book exterior */
+    background:
+        radial-gradient(ellipse at 30% 20%, rgba(60, 40, 15, 0.9) 0%, transparent 60%),
+        radial-gradient(ellipse at 70% 80%, rgba(40, 25, 10, 0.8) 0%, transparent 50%),
+        linear-gradient(135deg, #2a1a08 0%, #1a1005 30%, #241608 50%, #1a1005 70%, #2a1a08 100%);
+    border: 4px solid #5a4020;
+    border-top-width: 6px;
+    border-bottom-width: 6px;
+    width: 100%;
+    max-width: 800px;
+    max-height: 90vh;
+    padding: 0;
+    border-radius: 6px;
+    position: relative;
+    box-shadow:
+        0 25px 60px rgba(0, 0, 0, 0.9),
+        0 0 0 1px rgba(199, 161, 59, 0.2),
+        inset 0 0 80px rgba(0, 0, 0, 0.6),
+        inset 0 2px 0 rgba(199, 161, 59, 0.15),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.5);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow: hidden;
+}
+
+/* Inner parchment page */
+.modal-content::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background:
+        repeating-linear-gradient(
+            0deg,
+            transparent,
+            transparent 40px,
+            rgba(199, 161, 59, 0.03) 40px,
+            rgba(199, 161, 59, 0.03) 41px
+        );
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* Ornate top border decoration */
+.modal-content::after {
+    content: '\2756  \2726  \2756';
+    position: absolute;
+    top: 8px;
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-size: 1rem;
+    color: rgba(199, 161, 59, 0.4);
+    letter-spacing: 8px;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.grimoire-scroll {
+    width: 100%;
+    overflow-y: auto;
+    padding: 40px 35px 30px;
+    position: relative;
+    z-index: 1;
+}
+
+.modal-title {
+    font-family: 'Cinzel', serif;
+    font-size: 2.4rem;
+    color: var(--accent-gold);
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    letter-spacing: 4px;
+    text-align: center;
+    text-shadow:
+        0 0 20px rgba(199, 161, 59, 0.3),
+        0 2px 4px rgba(0, 0, 0, 0.8);
+}
+
+.modal-subtitle {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    font-style: italic;
+    margin-bottom: 8px;
+    text-align: center;
+}
+
+/* Ornate divider under subtitle */
+.grimoire-divider {
+    width: 60%;
+    height: 1px;
+    margin: 0 auto 25px;
+    background: linear-gradient(
+        to right,
+        transparent 0%,
+        rgba(199, 161, 59, 0.15) 20%,
+        rgba(199, 161, 59, 0.5) 50%,
+        rgba(199, 161, 59, 0.15) 80%,
+        transparent 100%
+    );
+    position: relative;
+}
+
+.grimoire-divider::after {
+    content: '\2666';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: var(--accent-gold);
+    font-size: 0.7rem;
+    background: #1a1005;
+    padding: 0 8px;
+}
+
+/* Formula explanation */
+.grimoire-formula {
+    text-align: center;
+    margin-bottom: 25px;
+    padding: 12px 20px;
+    background: rgba(199, 161, 59, 0.06);
+    border: 1px solid rgba(199, 161, 59, 0.15);
+    border-radius: 4px;
+}
+
+.grimoire-formula-text {
+    font-family: 'Metamorphous', cursive;
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+}
+
+.grimoire-formula-text strong {
+    color: var(--accent-gold);
+}
+
+#combo-list {
+    width: 100%;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin-bottom: 25px;
+}
+
+.combo-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px 18px;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid rgba(199, 161, 59, 0.1);
+    border-radius: 0;
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.combo-item:first-child {
+    border-top: 1px solid rgba(199, 161, 59, 0.1);
+}
+
+.combo-item:hover {
+    background: rgba(199, 161, 59, 0.04);
+}
+
+/* Roman numeral rank badge */
+.combo-rank {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: 'Cinzel', serif;
+    font-size: 0.7rem;
+    font-weight: bold;
+    color: var(--accent-gold);
+    border: 1px solid rgba(199, 161, 59, 0.3);
+    border-radius: 50%;
+    flex-shrink: 0;
+    opacity: 0.7;
+}
+
+/* Mini card illustrations */
+.combo-illustration {
+    display: flex;
+    gap: 3px;
+    flex-shrink: 0;
+    align-items: center;
+}
+
+.combo-mini-card {
+    width: 34px;
+    height: 51px;
+    background-size: 100% 100%;
+    background-position: center;
+    border-radius: 3px;
+    border: 1px solid rgba(199, 161, 59, 0.25);
+    box-shadow:
+        1px 2px 5px rgba(0, 0, 0, 0.6),
+        inset 0 0 3px rgba(0, 0, 0, 0.2);
+    flex-shrink: 0;
+    transition: transform 0.2s ease;
+}
+
+.combo-item:hover .combo-mini-card {
+    transform: translateY(-2px);
+}
+
+.combo-info {
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+    flex: 1;
+    min-width: 0;
+}
+
+.combo-main-name {
+    font-family: 'Cinzel', serif;
+    color: var(--accent-gold);
+    font-weight: bold;
+    font-size: 1rem;
+    letter-spacing: 0.5px;
+}
+
+.combo-desc {
+    font-size: 0.72rem;
+    color: var(--text-secondary);
+    margin-top: 3px;
+    font-style: italic;
+}
+
+.combo-stats {
+    text-align: right;
+    font-family: 'Metamorphous', cursive;
+    min-width: 80px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.combo-base-val {
+    font-size: 0.95rem;
+    color: #e8dfc0;
+}
+
+.combo-mult-val {
+    font-size: 0.85rem;
+    color: var(--accent-gold);
+    font-weight: bold;
+}
+
+#btn-close-guide {
+    margin: 0 auto 20px;
+    position: relative;
+    z-index: 1;
+}
+
+@media (max-width: 700px) {
+    .modal-content {
+        max-width: 100%;
+    }
+
+    .grimoire-scroll {
+        padding: 35px 18px 20px;
+    }
+
+    .modal-title {
+        font-size: 1.6rem;
+        letter-spacing: 2px;
+    }
+
+    .combo-mini-card {
+        width: 26px;
+        height: 39px;
+    }
+
+    .combo-rank {
+        display: none;
+    }
+
+    .combo-main-name {
+        font-size: 0.85rem;
+    }
+}
+
+/* --- CRITICAL CARD SYSTEM --- */
+.card-container.card-critical {
+    box-shadow:
+        0 0 20px 6px rgba(120, 80, 255, 0.6),
+        0 0 40px 12px rgba(120, 80, 255, 0.3);
+    border-color: #a29bfe;
+}
+
+.card-container.card-critical.selected {
+    box-shadow:
+        0 0 25px 8px rgba(120, 80, 255, 0.8),
+        0 0 50px 15px rgba(120, 80, 255, 0.4);
+    border-color: #a29bfe;
+}
+
+.crit-indicator {
+    position: absolute;
+    top: -28px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: 'Cinzel', serif;
+    font-size: 0.85rem;
+    font-weight: bold;
+    color: #a29bfe;
+    text-shadow:
+        0 0 10px rgba(120, 80, 255, 0.8),
+        0 2px 4px rgba(0, 0, 0, 0.8);
+    pointer-events: none;
+    z-index: 200;
+    white-space: nowrap;
+    animation: crit-float 2s ease-in-out infinite;
+}
+
+@keyframes crit-float {
+    0%, 100% { transform: translateX(-50%) translateY(0); }
+    50% { transform: translateX(-50%) translateY(-4px); }
+}
+
+.crit-popup {
+    position: absolute;
+    top: -80px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: 'Cinzel', serif;
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: #a29bfe;
+    text-shadow:
+        0 0 15px rgba(120, 80, 255, 0.8),
+        0 0 30px rgba(120, 80, 255, 0.4),
+        0 2px 4px rgba(0, 0, 0, 0.8);
+    pointer-events: none;
+    z-index: 201;
+    white-space: nowrap;
+}
+
+#label-crit {
+    background: radial-gradient(circle, rgba(162, 155, 254, 0.5), rgba(120, 80, 255, 0.2));
+    border-color: #a29bfe;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.4rem;
+}
+
+#label-crit::after {
+    content: '\2726';
+    color: #a29bfe;
+    filter: drop-shadow(0 0 4px rgba(120, 80, 255, 0.8));
+}
+
+/* --- CARD SCORING ANIMATION (Demon's Hand style) --- */
+.card-value-popup {
+    position: absolute;
+    top: -45px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: 'Cinzel', serif;
+    font-size: 2rem;
+    font-weight: bold;
+    color: #ff4d4d;
+    text-shadow:
+        0 0 15px rgba(255, 77, 77, 0.8),
+        0 0 30px rgba(255, 77, 77, 0.4),
+        0 2px 4px rgba(0, 0, 0, 0.8);
+    pointer-events: none;
+    z-index: 200;
+    white-space: nowrap;
+}
+
+.card-container.card-scoring {
+    box-shadow:
+        0 0 25px 8px rgba(255, 77, 77, 0.6),
+        0 0 50px 15px rgba(255, 77, 77, 0.3);
+    border-color: #ff6b6b;
+    transition: box-shadow 0.3s ease, border-color 0.3s ease;
+}
+
+/* --- EFFETS DE COMBAT --- */
+.enemy-recoil {
+    animation: monsterHit 0.6s ease-out;
+}
+
+@keyframes monsterHit {
+    0% {
+        transform: scale(1) rotate(0deg);
+        filter: brightness(1);
+    }
+
+    10% {
+        transform: scale(1.1) rotate(2deg);
+        filter: brightness(2.5) contrast(1.5);
+    }
+
+    20% {
+        transform: scale(0.95) rotate(-2deg);
+        filter: brightness(1.6);
+    }
+
+    100% {
+        transform: scale(1) rotate(0deg);
+        filter: brightness(1);
+    }
+}
+
+.flash-red {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 150%;
+    height: 150%;
+    background: radial-gradient(circle, rgba(231, 76, 60, 0.7) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 100;
+    opacity: 0;
+}
+
+.floating-damage {
+    position: absolute;
+    color: #ff4d4d;
+    font-family: 'Cinzel', serif;
+    font-size: 3.5rem;
+    font-weight: bold;
+    text-shadow:
+        0 0 10px rgba(0, 0, 0, 1),
+        0 0 20px rgba(231, 76, 60, 0.8);
+    pointer-events: none;
+    z-index: 200;
+}
+
+/* --- ATTAQUE ENNEMI PREMIUM --- */
+.enemy-attack-lunge {
+    animation: enemyLunge 0.6s cubic-bezier(0.6, -0.28, 0.735, 0.045) forwards;
+}
+
+@keyframes enemyLunge {
+    0% {
+        transform: scale(1) translateY(0);
+        filter: brightness(1);
+    }
+
+    30% {
+        transform: scale(0.9) translateY(-20px);
+        filter: brightness(0.7) contrast(1.2);
+    }
+
+    /* Préparation (recul) */
+    60% {
+        transform: scale(1.4) translateY(200px);
+        filter: brightness(2) contrast(1.5);
+    }
+
+    /* Impact (jump) */
+    100% {
+        transform: scale(1) translateY(0);
+        filter: brightness(1);
+    }
+}
+
+.screen-blood-vignette {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: radial-gradient(circle, transparent 40%, rgba(139, 0, 0, 0.6) 100%);
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0;
+    mix-blend-mode: multiply;
+}
+
+.player-hit-recoil {
+    animation: playerShake 0.5s ease-out;
+}
+
+@keyframes playerShake {
+    0% {
+        transform: translate(0, 0);
+    }
+
+    10% {
+        transform: translate(-20px, 15px);
+    }
+
+    30% {
+        transform: translate(25px, -10px);
+    }
+
+    50% {
+        transform: translate(-15px, 10px);
+    }
+
+    70% {
+        transform: translate(10px, -5px);
+    }
+
+    100% {
+        transform: translate(0, 0);
+    }
+}
+
+/* --- MAP SCREEN --- */
+#map-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at center, #12100a 0%, #0a0804 100%);
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 1400;
+    padding: 40px;
+}
+
+#map-title {
+    font-family: 'Cinzel', serif;
+    font-size: 3rem;
+    color: var(--accent-gold);
+    letter-spacing: 10px;
+    margin-bottom: 20px;
+    text-shadow: 0 0 20px rgba(197, 160, 89, 0.3);
+}
+
+#map-player-status {
+    display: flex;
+    gap: 40px;
+    margin-bottom: 40px;
+    font-family: 'Metamorphous', cursive;
+    font-size: 1.1rem;
+    color: var(--text-secondary);
+}
+
+#map-nodes-container {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    margin-bottom: 40px;
+    overflow-x: auto;
+    padding: 20px;
+}
+
+.map-column {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+}
+
+.map-node {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: default;
+    position: relative;
+}
+
+.map-node-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    border: 3px solid var(--border-color);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.5rem;
+    background: var(--bg-card-dark);
+    transition: all 0.3s ease;
+}
+
+.map-node.completed .map-node-icon {
+    border-color: #555;
+    opacity: 0.4;
+}
+
+.map-node.current .map-node-icon {
+    border-color: var(--accent-gold);
+    box-shadow: 0 0 20px rgba(197, 160, 89, 0.5);
+    animation: pulse-glow 2s infinite;
+}
+
+.map-node.current.selected .map-node-icon {
+    border-color: #a29bfe;
+    box-shadow: 0 0 25px rgba(120, 80, 255, 0.6);
+}
+
+.map-node.upcoming .map-node-icon {
+    border-color: var(--border-color);
+    opacity: 0.6;
+}
+
+/* Node type colors */
+.map-node-icon.combat {
+    background: rgba(116, 0, 1, 0.3);
+}
+
+.map-node-icon.shop {
+    background: rgba(197, 160, 89, 0.2);
+}
+
+.map-node-icon.boss {
+    background: rgba(116, 0, 1, 0.5);
+}
+
+.map-node-icon.dortoir {
+    background: rgba(30, 80, 160, 0.3);
+}
+
+.map-node-label {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.65rem;
+    color: var(--text-secondary);
+    margin-top: 8px;
+    text-transform: uppercase;
+    text-align: center;
+    max-width: 80px;
+    line-height: 1.2;
+}
+
+/* Connector lines between columns */
+.map-connector {
+    width: 40px;
+    height: 3px;
+    background: var(--border-color);
+    flex-shrink: 0;
+}
+
+.map-connector.completed {
+    background: var(--accent-gold);
+    opacity: 0.4;
+}
+
+@keyframes pulse-glow {
+    0%, 100% {
+        box-shadow: 0 0 15px rgba(197, 160, 89, 0.3);
+    }
+
+    50% {
+        box-shadow: 0 0 30px rgba(197, 160, 89, 0.6);
+    }
+}
+
+#map-node-info {
+    text-align: center;
+    margin-bottom: 30px;
+    min-height: 80px;
+}
+
+#map-node-name {
+    font-family: 'Cinzel', serif;
+    font-size: 1.8rem;
+    color: var(--accent-gold);
+    margin-bottom: 8px;
+}
+
+#map-node-desc {
+    font-size: 1rem;
+    color: var(--text-secondary);
+    font-style: italic;
+}
+
+/* --- DORTOIR SCREEN --- */
+#dortoir-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at center, #0a1525 0%, #050a14 100%);
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 1400;
+    padding: 40px;
+}
+
+#dortoir-title {
+    font-family: 'Cinzel', serif;
+    font-size: 3rem;
+    color: #6fa8dc;
+    letter-spacing: 10px;
+    margin-bottom: 15px;
+    text-shadow: 0 0 20px rgba(111, 168, 220, 0.3);
+}
+
+#dortoir-subtitle {
+    font-family: 'Metamorphous', cursive;
+    font-size: 1.2rem;
+    color: var(--text-secondary);
+    margin-bottom: 40px;
+    font-style: italic;
+}
+
+#dortoir-heal-value {
+    font-family: 'Cinzel', serif;
+    font-size: 4rem;
+    color: #4caf50;
+    text-shadow: 0 0 30px rgba(76, 175, 80, 0.5);
+    margin-bottom: 20px;
+}
+
+#dortoir-hp-after {
+    font-family: 'Metamorphous', cursive;
+    font-size: 1.3rem;
+    color: var(--text-primary);
+    margin-bottom: 40px;
+}
+
+/* --- RUN STATS (game over overlay) --- */
+#run-stats {
+    margin: 20px 0;
+    text-align: center;
+}
+
+#run-stats .stat-line {
+    font-family: 'Metamorphous', cursive;
+    font-size: 1.1rem;
+    color: var(--text-secondary);
+    margin: 8px 0;
+}
+
+#run-stats .stat-line span {
+    color: var(--accent-gold);
+    font-weight: bold;
+}
+
+/* --- RESPONSIVE MAP --- */
+@media (max-width: 900px) {
+    #map-title {
+        font-size: 2rem;
+        letter-spacing: 5px;
+    }
+
+    #map-player-status {
+        gap: 20px;
+        font-size: 0.9rem;
+    }
+
+    .map-node-icon {
+        width: 45px;
+        height: 45px;
+        font-size: 1.2rem;
+    }
+
+    .map-connector {
+        width: 25px;
+    }
+}

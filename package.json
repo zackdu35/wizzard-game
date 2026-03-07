@@ -1,0 +1,16 @@
+{
+    "name": "the-wizzard-hand",
+    "version": "1.0.0",
+    "description": "Roguelike Poker game with a magical twist.",
+    "main": "index.html",
+    "scripts": {
+        "start": "npx serve .",
+        "dev": "npx serve ."
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+        "serve": "^14.2.1"
+    }
+}
