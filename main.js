@@ -6,20 +6,20 @@
 // --- POOL D'ENNEMIS ---
 const ENEMY_POOL = [
     // Tier 1 (nodes 1-2): low HP, low attack
-    { id: "troll", hp: 200, attack: 10, tier: 1, image: "enemy_troll.png" },
-    { id: "spider", hp: 180, attack: 12, tier: 1, image: "giant-spider-ennemy.png" },
-    { id: "gnome", hp: 150, attack: 8, tier: 1, image: "enemy_troll.png" },
-    { id: "pixie", hp: 170, attack: 11, tier: 1, image: "enemy_troll.png" },
+    { id: "troll", hp: 200, attack: 10, tier: 1, image: "enemy_troll.webp" },
+    { id: "spider", hp: 180, attack: 12, tier: 1, image: "giant-spider-ennemy.webp" },
+    { id: "gnome", hp: 150, attack: 8, tier: 1, image: "enemy_troll.webp" },
+    { id: "pixie", hp: 170, attack: 11, tier: 1, image: "enemy_troll.webp" },
     // Tier 2 (nodes 4-5): medium HP, medium attack
-    { id: "basilisk", hp: 300, attack: 15, tier: 2, image: "enemy_troll.png" },
-    { id: "boggart", hp: 280, attack: 18, tier: 2, image: "enemy_troll.png" },
-    { id: "hippogriff", hp: 320, attack: 14, tier: 2, image: "enemy_troll.png" },
-    { id: "skrewt", hp: 260, attack: 20, tier: 2, image: "enemy_troll.png" },
+    { id: "basilisk", hp: 300, attack: 15, tier: 2, image: "enemy_troll.webp" },
+    { id: "boggart", hp: 280, attack: 18, tier: 2, image: "enemy_troll.webp" },
+    { id: "hippogriff", hp: 320, attack: 14, tier: 2, image: "enemy_troll.webp" },
+    { id: "skrewt", hp: 260, attack: 20, tier: 2, image: "enemy_troll.webp" },
     // Tier 3 (nodes 7-8): high HP, high attack
-    { id: "werewolf", hp: 400, attack: 22, tier: 3, image: "enemy_troll.png" },
-    { id: "dragon", hp: 450, attack: 25, tier: 3, image: "enemy_troll.png" },
-    { id: "inferius", hp: 380, attack: 28, tier: 3, image: "enemy_troll.png" },
-    { id: "centaur", hp: 420, attack: 20, tier: 3, image: "enemy_troll.png" },
+    { id: "werewolf", hp: 400, attack: 22, tier: 3, image: "enemy_troll.webp" },
+    { id: "dragon", hp: 450, attack: 25, tier: 3, image: "enemy_troll.webp" },
+    { id: "inferius", hp: 380, attack: 28, tier: 3, image: "enemy_troll.webp" },
+    { id: "centaur", hp: 420, attack: 20, tier: 3, image: "enemy_troll.webp" },
 ];
 
 const BOSS_POOL = [
@@ -27,7 +27,7 @@ const BOSS_POOL = [
         id: "dementor",
         hp: 800,
         attack: 30,
-        image: "enemy_troll.png", // Default for now
+        image: "enemy_troll.webp", // Default for now
         malus: {
             id: "no_ravenclaw",
             description: "Les cartes de Serdaigle ne font aucun degat.",
@@ -38,7 +38,7 @@ const BOSS_POOL = [
         id: "voldemort",
         hp: 1000,
         attack: 35,
-        image: "enemy_troll.png",
+        image: "enemy_troll.webp",
         malus: {
             id: "no_low_cards",
             description: "Les cartes de rang 2 a 6 ne font aucun degat.",
@@ -49,7 +49,7 @@ const BOSS_POOL = [
         id: "bellatrix",
         hp: 700,
         attack: 40,
-        image: "enemy_troll.png",
+        image: "enemy_troll.webp",
         malus: {
             id: "no_hufflepuff",
             description: "Les cartes de Poufsouffle ne font aucun degat.",
@@ -115,10 +115,10 @@ const state = {
 };
 
 const suitImages = {
-    "gryffindor": "assets/suit_gryffindor.png",
-    "hufflepuff": "assets/suit_hufflepuff.png",
-    "ravenclaw": "assets/suit_ravenclaw.png",
-    "slytherin": "assets/suit_slytherin.png"
+    "gryffindor": "assets/suit_gryffindor.webp",
+    "hufflepuff": "assets/suit_hufflepuff.webp",
+    "ravenclaw": "assets/suit_ravenclaw.webp",
+    "slytherin": "assets/suit_slytherin.webp"
 };
 
 // --- BASE DE DONNÉES DES ARTEFACTS MAGIQUES ---
@@ -597,9 +597,9 @@ function createCardElement(card, index) {
     wrapper.dataset.index = index;
     wrapper.dataset.id = card.id;
 
-    // Nom du fichier : card_SUIT_RANK.png
+    // Nom du fichier : card_SUIT_RANK.webp
     // Note: Pour l'instant on n'a que Gryffindor 2-11, Slytherin 12, Ravenclaw 13, Hufflepuff 14.
-    const cardImagePath = `assets/card_${card.suit}_${card.rank}.png`;
+    const cardImagePath = `assets/card_${card.suit}_${card.rank}.webp`;
 
     wrapper.innerHTML = `
         <div class="card-container ${state.selectedIndices.includes(index) ? 'selected' : ''}">
@@ -1075,7 +1075,7 @@ function initComboModal() {
 
         // Generate mini card illustrations
         const cardsHTML = c.cards.map(card =>
-            `<div class="combo-mini-card" style="background-image: url('assets/card_${card}.png');"></div>`
+            `<div class="combo-mini-card" style="background-image: url('assets/card_${card}.webp');"></div>`
         ).join('');
 
         li.innerHTML = `
