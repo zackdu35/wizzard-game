@@ -30,8 +30,7 @@
 }
 
 body {
-    background-color: #1a1005;
-    background-image: url('assets/main_bg_premium.webp');
+    background-color: #0a0804;
     background-size: cover;
     background-position: center;
     color: var(--text-primary);
@@ -43,6 +42,60 @@ body {
     align-items: center;
 }
 
+/* --- SCREEN TRANSITION OVERLAY --- */
+#screen-transition {
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+}
+
+.transition-curtain {
+    position: absolute;
+    top: 0;
+    width: 50%;
+    height: 100%;
+    background: linear-gradient(180deg,
+            #0a0804 0%,
+            #1a1208 40%,
+            #0a0804 100%);
+    transform: scaleX(0);
+    will-change: transform;
+}
+
+.transition-curtain-left {
+    left: 0;
+    transform-origin: left center;
+}
+
+.transition-curtain-right {
+    right: 0;
+    transform-origin: right center;
+}
+
+.transition-gold-line {
+    position: absolute;
+    left: 50%;
+    top: 0;
+    width: 2px;
+    height: 100%;
+    background: linear-gradient(180deg,
+            transparent 0%,
+            rgba(199, 161, 59, 0.1) 15%,
+            rgba(199, 161, 59, 0.8) 40%,
+            rgba(245, 230, 163, 1) 50%,
+            rgba(199, 161, 59, 0.8) 60%,
+            rgba(199, 161, 59, 0.1) 85%,
+            transparent 100%);
+    transform: translateX(-50%) scaleY(0);
+    box-shadow:
+        0 0 15px 3px rgba(199, 161, 59, 0.4),
+        0 0 40px 8px rgba(199, 161, 59, 0.15);
+    will-change: transform;
+}
+
 #game-container {
     width: 100%;
     max-width: 1200px;
@@ -52,6 +105,18 @@ body {
     padding: 20px;
     gap: 20px;
     position: relative;
+    margin: 0 auto;
+}
+
+#main-game-bg {
+    position: fixed;
+    inset: 0;
+    background: url('assets/Gemini_Generated_Image_446xcq446xcq446x.webp');
+    background-size: cover;
+    background-position: center;
+    z-index: -5;
+    display: none;
+    pointer-events: none;
 }
 
 #language-switcher {
@@ -176,6 +241,34 @@ body {
     background-clip: text;
     color: transparent;
     -webkit-text-fill-color: transparent;
+}
+
+#enemy-attack-overlay {
+    top: 26px;
+    left: 0px;
+    width: 70px;
+    height: 70px;
+    font-size: 2.1rem;
+
+    /* Effet d'Or Flamboyant / Ambre Magique */
+    background: linear-gradient(135deg,
+            #fff9e6 0%,
+            /* Éclat */
+            #f1c40f 25%,
+            /* Or vif */
+            #d4af37 50%,
+            /* Or métallique */
+            #a67c00 51%,
+            /* Ombre profonde */
+            #ffdc14 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+
+    /* On booste l'éclat pour compenser le fond sombre */
+    filter:
+        drop-shadow(0 0 5px rgba(241, 196, 15, 0.4)) drop-shadow(2px 4px 6px rgba(0, 0, 0, 0.9));
 }
 
 
@@ -799,11 +892,8 @@ button:disabled {
 /* --- DIAGON ALLEY --- */
 #sanctuary-screen {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: radial-gradient(circle at center, #1a1505 0%, #0a0804 100%);
+    inset: 0;
+    background: transparent;
     display: none;
     flex-direction: column;
     justify-content: center;
@@ -1493,7 +1583,7 @@ button:disabled {
     left: 0;
     width: 100%;
     height: 100%;
-    background: radial-gradient(circle at center, #12100a 0%, #0a0804 100%);
+    background: transparent;
     display: none;
     flex-direction: column;
     justify-content: center;
@@ -1746,15 +1836,135 @@ button:disabled {
     left: 0;
     width: 100%;
     height: 100%;
-    background: radial-gradient(ellipse at center, #1a1208 0%, #0a0804 60%, #000 100%);
+    background: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.6) 60%, rgba(0, 0, 0, 0.85)),
+        url('assets/home_bg.webp');
+    background-size: cover;
+    background-position: center;
     display: none;
     flex-direction: column;
     justify-content: center;
     align-items: center;
     z-index: 2500;
     padding: 40px;
+    overflow: hidden;
 }
 
+/* Slow background zoom/breathe */
+#title-screen::before {
+    content: '';
+    position: absolute;
+    inset: -20px;
+    background: inherit;
+    background-size: cover;
+    background-position: center;
+    animation: title-bg-breathe 12s ease-in-out infinite;
+    z-index: -2;
+}
+
+@keyframes title-bg-breathe {
+
+    0%,
+    100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.04);
+    }
+}
+
+/* --- Magical Particles --- */
+#title-particles {
+    position: absolute;
+    inset: 0;
+    z-index: 50;
+    pointer-events: none;
+    overflow: hidden;
+}
+
+.magic-particle {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(245, 230, 163, 1) 0%, rgba(199, 161, 59, 0.8) 40%, rgba(199, 161, 59, 0) 100%);
+    box-shadow:
+        0 0 8px 3px rgba(199, 161, 59, 0.5),
+        0 0 18px 6px rgba(199, 161, 59, 0.2);
+    animation: particle-float linear infinite;
+    opacity: 0;
+}
+
+@keyframes particle-float {
+    0% {
+        opacity: 0;
+        transform: translateY(0) translateX(0) scale(0.5);
+    }
+
+    10% {
+        opacity: 1;
+    }
+
+    90% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0;
+        transform: translateY(-100vh) translateX(var(--drift, 30px)) scale(0);
+    }
+}
+
+/* --- Fog Layers --- */
+#title-fog,
+#title-fog-2 {
+    position: absolute;
+    bottom: 0;
+    left: -10%;
+    width: 120%;
+    height: 35%;
+    z-index: 2;
+    pointer-events: none;
+    background: linear-gradient(to top,
+            rgba(10, 8, 4, 0.9) 0%,
+            rgba(10, 8, 4, 0.5) 30%,
+            rgba(10, 8, 4, 0.2) 60%,
+            transparent 100%);
+    animation: fog-drift 20s ease-in-out infinite;
+    opacity: 0.7;
+}
+
+#title-fog-2 {
+    animation: fog-drift-2 25s ease-in-out infinite;
+    opacity: 0.4;
+    height: 25%;
+}
+
+@keyframes fog-drift {
+
+    0%,
+    100% {
+        transform: translateX(0);
+    }
+
+    50% {
+        transform: translateX(3%);
+    }
+}
+
+@keyframes fog-drift-2 {
+
+    0%,
+    100% {
+        transform: translateX(0);
+    }
+
+    50% {
+        transform: translateX(-4%);
+    }
+}
+
+/* --- Title Content --- */
 #title-content {
     display: flex;
     flex-direction: column;
@@ -1762,6 +1972,8 @@ button:disabled {
     gap: 10px;
     max-width: 600px;
     text-align: center;
+    z-index: 10;
+    position: relative;
 }
 
 #title-game-name {
@@ -1771,11 +1983,10 @@ button:disabled {
     color: var(--accent-gold);
     letter-spacing: 12px;
     text-transform: uppercase;
-    text-shadow:
-        0 0 40px rgba(199, 161, 59, 0.4),
-        0 0 80px rgba(199, 161, 59, 0.2),
-        0 4px 8px rgba(0, 0, 0, 0.8);
     line-height: 1.1;
+    text-shadow:
+        0 0 40px rgba(199, 161, 59, 0.3),
+        0 4px 8px rgba(0, 0, 0, 0.8);
 }
 
 #title-subtitle {
@@ -1785,14 +1996,48 @@ button:disabled {
     letter-spacing: 8px;
     text-transform: uppercase;
     margin-bottom: 10px;
+    text-shadow: 0 0 20px rgba(199, 161, 59, 0.15);
 }
 
+/* --- Ornaments with animated expansion --- */
 .title-ornament {
     width: 300px;
     height: 1px;
-    background: linear-gradient(to right, transparent 0%, rgba(199, 161, 59, 0.15) 20%, rgba(199, 161, 59, 0.5) 50%, rgba(199, 161, 59, 0.15) 80%, transparent 100%);
+    background: linear-gradient(to right,
+            transparent 0%,
+            rgba(199, 161, 59, 0.15) 20%,
+            rgba(199, 161, 59, 0.5) 50%,
+            rgba(199, 161, 59, 0.15) 80%,
+            transparent 100%);
     position: relative;
     margin: 8px 0;
+}
+
+.title-ornament::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(to right,
+            transparent 0%,
+            rgba(245, 230, 163, 0.4) 40%,
+            rgba(245, 230, 163, 0.6) 50%,
+            rgba(245, 230, 163, 0.4) 60%,
+            transparent 100%);
+    background-size: 50% 100%;
+    animation: ornament-sweep 4s ease-in-out infinite;
+}
+
+@keyframes ornament-sweep {
+    0% {
+        background-position: -100% 0;
+    }
+
+    100% {
+        background-position: 300% 0;
+    }
 }
 
 .title-ornament::after {
@@ -1803,10 +2048,27 @@ button:disabled {
     transform: translate(-50%, -50%);
     color: var(--accent-gold);
     font-size: 0.7rem;
-    background: #0a0804;
+    background: transparent;
     padding: 0 8px;
+    animation: diamond-pulse 3s ease-in-out infinite;
+    text-shadow: 0 0 10px rgba(199, 161, 59, 0.6);
 }
 
+@keyframes diamond-pulse {
+
+    0%,
+    100% {
+        opacity: 0.6;
+        text-shadow: 0 0 10px rgba(199, 161, 59, 0.3);
+    }
+
+    50% {
+        opacity: 1;
+        text-shadow: 0 0 20px rgba(199, 161, 59, 0.8);
+    }
+}
+
+/* --- Buttons --- */
 #title-buttons {
     display: flex;
     flex-direction: column;
@@ -1827,11 +2089,12 @@ button:disabled {
     letter-spacing: 3px;
     cursor: pointer;
     border: 3px solid;
-    transition: all 0.3s ease;
+    transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     display: flex;
     align-items: center;
     justify-content: center;
     position: relative;
+    overflow: hidden;
 }
 
 .title-btn::after {
@@ -1840,6 +2103,34 @@ button:disabled {
     inset: 4px;
     border: 1px solid rgba(232, 223, 192, 0.15);
     pointer-events: none;
+}
+
+/* Shine sweep on primary button */
+.btn-shine {
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 60%;
+    height: 100%;
+    background: linear-gradient(90deg,
+            transparent,
+            rgba(255, 255, 255, 0.25),
+            transparent);
+    transform: skewX(-20deg);
+    animation: btn-shine-sweep 4s ease-in-out infinite;
+    pointer-events: none;
+}
+
+@keyframes btn-shine-sweep {
+
+    0%,
+    70% {
+        left: -100%;
+    }
+
+    100% {
+        left: 200%;
+    }
 }
 
 .title-btn-primary {
@@ -1854,8 +2145,11 @@ button:disabled {
 
 .title-btn-primary:hover {
     background: linear-gradient(to bottom, #ddb84a, var(--accent-gold));
-    box-shadow: 0 10px 40px rgba(199, 161, 59, 0.5), 0 5px 20px rgba(0, 0, 0, 0.6);
-    transform: translateY(-2px);
+    box-shadow:
+        0 10px 40px rgba(199, 161, 59, 0.6),
+        0 5px 20px rgba(0, 0, 0, 0.6),
+        0 0 60px rgba(199, 161, 59, 0.2);
+    transform: translateY(-3px) scale(1.02);
 }
 
 .title-btn-secondary {
@@ -1868,8 +2162,10 @@ button:disabled {
 .title-btn-secondary:hover:not(:disabled) {
     border-color: var(--accent-gold);
     color: var(--text-primary);
-    box-shadow: 0 0 20px rgba(199, 161, 59, 0.2), 0 10px 20px rgba(0, 0, 0, 0.6);
-    transform: translateY(-2px);
+    box-shadow:
+        0 0 25px rgba(199, 161, 59, 0.25),
+        0 10px 20px rgba(0, 0, 0, 0.6);
+    transform: translateY(-3px) scale(1.02);
 }
 
 .title-btn-secondary:disabled {
@@ -1885,13 +2181,53 @@ button:disabled {
     left: 0;
     width: 100%;
     height: 100%;
-    background: radial-gradient(ellipse at center, #1a1208 0%, #0a0804 60%, #000 100%);
+    background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.7) 60%, rgba(0, 0, 0, 0.9)),
+        url('assets/level-difficulty-bg.png');
+    background-size: cover;
+    background-position: center;
     display: none;
     flex-direction: column;
     justify-content: center;
     align-items: center;
     z-index: 2500;
     padding: 40px;
+    overflow: hidden;
+}
+
+/* Particles container */
+#diff-particles {
+    position: absolute;
+    inset: 0;
+    z-index: 50;
+    pointer-events: none;
+    overflow: hidden;
+}
+
+/* Top ornament line */
+.diff-ornament-top {
+    width: 400px;
+    height: 1px;
+    background: linear-gradient(to right,
+            transparent 0%,
+            rgba(199, 161, 59, 0.1) 20%,
+            rgba(199, 161, 59, 0.4) 50%,
+            rgba(199, 161, 59, 0.1) 80%,
+            transparent 100%);
+    position: relative;
+    margin-bottom: 30px;
+    z-index: 1;
+}
+
+.diff-ornament-top::after {
+    content: '\2666';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: var(--accent-gold);
+    font-size: 0.6rem;
+    padding: 0 8px;
+    opacity: 0.6;
 }
 
 #difficulty-title {
@@ -1900,69 +2236,176 @@ button:disabled {
     color: var(--accent-gold);
     letter-spacing: 8px;
     text-transform: uppercase;
-    text-shadow: 0 0 30px rgba(199, 161, 59, 0.4), 0 4px 8px rgba(0, 0, 0, 0.8);
-    margin-bottom: 50px;
+    text-shadow: 0 0 30px rgba(199, 161, 59, 0.3), 0 4px 8px rgba(0, 0, 0, 0.8);
+    margin-bottom: 8px;
+    z-index: 1;
+}
+
+#difficulty-subtitle {
+    font-family: 'Metamorphous', cursive;
+    font-size: 1rem;
+    color: var(--text-secondary);
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    margin-bottom: 40px;
+    opacity: 0.7;
+    z-index: 1;
 }
 
 #difficulty-cards {
     display: flex;
-    gap: 30px;
+    gap: 35px;
     perspective: 1000px;
+    z-index: 1;
 }
 
 .difficulty-card {
-    width: 260px;
-    height: 360px;
-    background: rgba(255, 255, 255, 0.03);
+    width: 270px;
+    height: 380px;
+    background: linear-gradient(170deg, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0.01) 100%);
+    backdrop-filter: blur(5px);
     border: 2px solid var(--border-color);
-    padding: 30px 20px;
-    border-radius: 8px;
+    padding: 35px 25px 25px;
+    border-radius: 10px;
     text-align: center;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 15px;
+    gap: 12px;
     position: relative;
+    overflow: hidden;
+}
+
+/* Inner glow layer */
+.diff-card-glow {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    pointer-events: none;
+    border-radius: 8px;
+}
+
+.difficulty-card:hover .diff-card-glow {
+    opacity: 1;
 }
 
 .difficulty-card:hover {
-    transform: translateY(-10px) scale(1.03);
+    transform: translateY(-12px) scale(1.04);
 }
 
+/* Recommended badge */
+.diff-recommended {
+    position: absolute;
+    top: 12px;
+    right: -30px;
+    background: var(--accent-gold);
+    color: #0a0804;
+    font-family: 'Cinzel', serif;
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    padding: 4px 35px;
+    transform: rotate(35deg);
+    z-index: 2;
+}
+
+/* --- Apprenti (Green) --- */
 .diff-apprenti {
-    border-color: rgba(76, 175, 80, 0.4);
+    border-color: rgba(76, 175, 80, 0.3);
+}
+
+.diff-apprenti .diff-card-glow {
+    background: radial-gradient(ellipse at center bottom, rgba(76, 175, 80, 0.12) 0%, transparent 70%);
 }
 
 .diff-apprenti:hover {
-    box-shadow: 0 0 30px rgba(76, 175, 80, 0.3), 0 20px 40px rgba(0, 0, 0, 0.5);
-    border-color: rgba(76, 175, 80, 0.8);
+    box-shadow:
+        0 0 40px rgba(76, 175, 80, 0.2),
+        0 20px 50px rgba(0, 0, 0, 0.5),
+        inset 0 0 30px rgba(76, 175, 80, 0.05);
+    border-color: rgba(76, 175, 80, 0.7);
 }
 
+.diff-apprenti .diff-icon {
+    color: #4caf50;
+    text-shadow: 0 0 20px rgba(76, 175, 80, 0.5);
+}
+
+.diff-apprenti .diff-separator {
+    background: linear-gradient(to right, transparent, rgba(76, 175, 80, 0.4), transparent);
+}
+
+/* --- Elite (Gold) --- */
 .diff-elite {
-    border-color: rgba(199, 161, 59, 0.4);
+    border-color: rgba(199, 161, 59, 0.3);
+}
+
+.diff-elite .diff-card-glow {
+    background: radial-gradient(ellipse at center bottom, rgba(199, 161, 59, 0.12) 0%, transparent 70%);
 }
 
 .diff-elite:hover {
-    box-shadow: 0 0 30px rgba(199, 161, 59, 0.3), 0 20px 40px rgba(0, 0, 0, 0.5);
-    border-color: rgba(199, 161, 59, 0.8);
+    box-shadow:
+        0 0 40px rgba(199, 161, 59, 0.25),
+        0 20px 50px rgba(0, 0, 0, 0.5),
+        inset 0 0 30px rgba(199, 161, 59, 0.05);
+    border-color: rgba(199, 161, 59, 0.7);
 }
 
+.diff-elite .diff-icon {
+    color: #ffd700;
+    text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+}
+
+.diff-elite .diff-separator {
+    background: linear-gradient(to right, transparent, rgba(199, 161, 59, 0.4), transparent);
+}
+
+/* --- Arcanes (Red) --- */
 .diff-arcanes {
-    border-color: rgba(231, 76, 60, 0.4);
+    border-color: rgba(231, 76, 60, 0.3);
+}
+
+.diff-arcanes .diff-card-glow {
+    background: radial-gradient(ellipse at center bottom, rgba(231, 76, 60, 0.12) 0%, transparent 70%);
 }
 
 .diff-arcanes:hover {
-    box-shadow: 0 0 30px rgba(231, 76, 60, 0.3), 0 20px 40px rgba(0, 0, 0, 0.5);
-    border-color: rgba(231, 76, 60, 0.8);
+    box-shadow:
+        0 0 40px rgba(231, 76, 60, 0.25),
+        0 20px 50px rgba(0, 0, 0, 0.5),
+        inset 0 0 30px rgba(231, 76, 60, 0.05);
+    border-color: rgba(231, 76, 60, 0.7);
 }
 
+.diff-arcanes .diff-icon {
+    color: #e74c3c;
+    text-shadow: 0 0 20px rgba(231, 76, 60, 0.5);
+}
+
+.diff-arcanes .diff-separator {
+    background: linear-gradient(to right, transparent, rgba(231, 76, 60, 0.4), transparent);
+}
+
+/* --- Shared card elements --- */
 .diff-icon {
     font-size: 2.5rem;
-    color: var(--accent-gold);
-    text-shadow: 0 0 15px rgba(199, 161, 59, 0.5);
+    transition: transform 0.3s ease, text-shadow 0.3s ease;
+}
+
+.difficulty-card:hover .diff-icon {
+    transform: scale(1.15);
+}
+
+.diff-separator {
+    width: 60%;
+    height: 1px;
+    background: linear-gradient(to right, transparent, rgba(199, 161, 59, 0.3), transparent);
+    margin: 2px 0;
 }
 
 .diff-name {
@@ -1977,6 +2420,7 @@ button:disabled {
     color: var(--text-secondary);
     line-height: 1.5;
     font-style: italic;
+    flex-grow: 1;
 }
 
 .diff-stats {
@@ -1984,9 +2428,10 @@ button:disabled {
     font-size: 1rem;
     color: var(--accent-gold);
     margin-top: auto;
-    padding-top: 10px;
-    border-top: 1px solid rgba(199, 161, 59, 0.15);
+    padding-top: 12px;
+    border-top: 1px solid rgba(199, 161, 59, 0.12);
     width: 100%;
+    letter-spacing: 1px;
 }
 
 @media (max-width: 900px) {

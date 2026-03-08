@@ -1,7 +1,5 @@
-/**
- * MAIN.JS - La Main du Sorcier
- * Méta-jeu & Combat - Version Corrigée (Final Fix).
- */
+// --- CONFIGURATION DEV ---
+const DEV_MODE = true; // Passez à false pour désactiver le mode développeur
 
 // --- POOL D'ENNEMIS ---
 const ENEMY_POOL = [
@@ -61,8 +59,8 @@ const BOSS_POOL = [
 // --- PRESETS DE DIFFICULTÉ ---
 const DIFFICULTY_PRESETS = {
     apprenti: { hp: 150, discards: 4, enemyMult: 0.8, critChance: 0.05 },
-    elite:    { hp: 100, discards: 3, enemyMult: 1.0, critChance: 0.03 },
-    arcanes:  { hp: 80,  discards: 2, enemyMult: 1.3, critChance: 0.02 }
+    elite: { hp: 100, discards: 3, enemyMult: 1.0, critChance: 0.03 },
+    arcanes: { hp: 80, discards: 2, enemyMult: 1.3, critChance: 0.02 }
 };
 
 // --- TYPES DE NOEUDS & TEMPLATE DE RUN ---
@@ -115,6 +113,7 @@ const state = {
     hand: [],
     selectedIndices: [],
     isAnimating: false,
+    isTransitioning: false,
     difficulty: "elite",
     // Critical system
     criticalCardIds: new Set(),
@@ -338,6 +337,7 @@ function showMap() {
     document.getElementById('game-container').style.opacity = '0';
     document.getElementById('sanctuary-screen').style.display = 'none';
     document.getElementById('dortoir-screen').style.display = 'none';
+    document.getElementById('main-game-bg').style.display = 'block';
     renderMap();
     gsap.fromTo('#map-screen', { opacity: 0 }, { opacity: 1, duration: 0.6 });
 
@@ -350,12 +350,16 @@ async function enterCurrentNode() {
     if (column.selectedNodeIndex === null) return;
     const currentNode = column.nodes[column.selectedNodeIndex];
 
+    // Ensure background is visible during gameplay
+    document.getElementById('main-game-bg').style.display = 'block';
+
     if (currentNode.type === NODE_TYPES.COMBAT || currentNode.type === NODE_TYPES.BOSS) {
         // Set current enemy from node data
         state.enemy = { ...currentNode.enemy };
 
         // Update enemy zone UI
         document.getElementById('enemy-hp-overlay').innerText = state.enemy.hp;
+        document.getElementById('enemy-attack-overlay').innerText = state.enemy.attack;
         document.getElementById('enemy-portrait').style.backgroundImage = `url('assets/${state.enemy.image}')`;
 
         // Show malus if boss
@@ -370,29 +374,27 @@ async function enterCurrentNode() {
             if (malusInfo) malusInfo.style.display = 'none';
         }
 
-        // Transition: fade map out, show game container
-        const tl = gsap.timeline();
-        tl.to('#map-screen', { opacity: 0, duration: 0.5 });
-        tl.set('#map-screen', { display: 'none' });
-        tl.set('#game-container', { opacity: 1 });
-        tl.add(() => startNewFight());
+        screenTransition(() => {
+            document.getElementById('map-screen').style.display = 'none';
+            gsap.set('#map-screen', { opacity: 1 });
+            gsap.set('#game-container', { opacity: 1 });
+            startNewFight();
+        });
     } else if (currentNode.type === NODE_TYPES.SHOP) {
-        // Transition directly to shop
-        const tl = gsap.timeline();
-        tl.to('#map-screen', { opacity: 0, duration: 0.5 });
-        tl.set('#map-screen', { display: 'none' });
-        tl.add(() => {
+        screenTransition(() => {
+            document.getElementById('map-screen').style.display = 'none';
+            gsap.set('#map-screen', { opacity: 1 });
             document.getElementById('sanctuary-screen').style.display = 'flex';
+            document.getElementById('sanctuary-screen').style.opacity = '1';
             document.getElementById('sanctuary-gold-value').innerText = state.player.gold;
             generateShop();
-            gsap.fromTo('#sanctuary-screen', { opacity: 0 }, { opacity: 1, duration: 0.6 });
         });
     } else if (currentNode.type === NODE_TYPES.DORTOIR) {
-        // Transition to dortoir
-        const tl = gsap.timeline();
-        tl.to('#map-screen', { opacity: 0, duration: 0.5 });
-        tl.set('#map-screen', { display: 'none' });
-        tl.add(() => showDortoir());
+        screenTransition(() => {
+            document.getElementById('map-screen').style.display = 'none';
+            gsap.set('#map-screen', { opacity: 1 });
+            showDortoir();
+        });
     }
 }
 
@@ -562,6 +564,93 @@ function clearSave() {
     catch (e) { console.warn('Clear save failed:', e); }
 }
 
+// --- SCREEN TRANSITION SYSTEM ---
+/**
+ * Premium curtain transition between screens.
+ * @param {Function} duringCallback - Called when curtains are fully closed (swap screens here)
+ * @param {Object} opts - Options { duration, color }
+ * @returns {Promise} Resolves when transition is fully complete
+ */
+function screenTransition(duringCallback, opts = {}) {
+    const duration = opts.duration || 0.5;
+
+    // If already transitioning, just run the callback and return
+    if (state.isTransitioning) {
+        if (duringCallback) duringCallback();
+        return Promise.resolve();
+    }
+
+    state.isTransitioning = true;
+    const curtainL = document.querySelector('.transition-curtain-left');
+    const curtainR = document.querySelector('.transition-curtain-right');
+    const goldLine = document.querySelector('.transition-gold-line');
+
+    return new Promise(resolve => {
+        const tl = gsap.timeline({
+            onComplete: () => {
+                state.isTransitioning = false;
+                resolve();
+            }
+        });
+
+        // Phase 1: Curtains close from edges to center
+        tl.set([curtainL, curtainR], { scaleX: 0 });
+        tl.set(goldLine, { scaleY: 0 });
+
+        tl.to(curtainL, {
+            scaleX: 1, duration: duration, ease: "power3.inOut"
+        }, 0);
+        tl.to(curtainR, {
+            scaleX: 1, duration: duration, ease: "power3.inOut"
+        }, 0);
+
+        // Gold line appears at the seam
+        tl.to(goldLine, {
+            scaleY: 1, duration: duration * 0.6, ease: "power2.out"
+        }, duration * 0.5);
+
+        // Phase 2: Execute callback while curtains are closed
+        tl.add(() => {
+            if (duringCallback) duringCallback();
+        }, duration + 0.05);
+
+        // Brief hold
+        tl.add(() => { }, `+=${0.15}`);
+
+        // Phase 3: Curtains open outward
+        tl.to(goldLine, {
+            scaleY: 0, duration: duration * 0.3, ease: "power2.in"
+        });
+        tl.to(curtainL, {
+            scaleX: 0, duration: duration, ease: "power3.inOut"
+        }, `-=${duration * 0.15}`);
+        tl.to(curtainR, {
+            scaleX: 0, duration: duration, ease: "power3.inOut"
+        }, `<`);
+    });
+}
+
+// --- TITLE PARTICLES ---
+function spawnTitleParticles() {
+    const container = document.getElementById('title-particles');
+    if (!container) return;
+    container.innerHTML = '';
+    const count = 70;
+    for (let i = 0; i < count; i++) {
+        const p = document.createElement('div');
+        p.className = 'magic-particle';
+        const size = 3 + Math.random() * 6;
+        p.style.width = size + 'px';
+        p.style.height = size + 'px';
+        p.style.left = Math.random() * 100 + '%';
+        p.style.bottom = -(Math.random() * 20) + '%';
+        p.style.setProperty('--drift', (Math.random() * 100 - 50) + 'px');
+        p.style.animationDuration = (5 + Math.random() * 10) + 's';
+        p.style.animationDelay = (Math.random() * 6) + 's';
+        container.appendChild(p);
+    }
+}
+
 // --- TITLE & DIFFICULTY SCREENS ---
 function showTitleScreen() {
     // Hide everything
@@ -573,31 +662,89 @@ function showTitleScreen() {
     document.getElementById('difficulty-screen').style.display = 'none';
     document.getElementById('player-stats').style.display = 'none';
     document.getElementById('grimoire-btn').style.display = 'none';
+    document.getElementById('main-game-bg').style.display = 'none';
     document.getElementById('menu-btn').style.display = 'none';
 
     // Update texts
-    document.getElementById('title-game-name').innerText = t('ui.title_name');
+    const titleEl = document.getElementById('title-game-name');
+    titleEl.innerText = t('ui.title_name');
+    titleEl.setAttribute('data-text', t('ui.title_name'));
     document.getElementById('title-subtitle').innerText = t('ui.title_subtitle');
-    document.getElementById('btn-new-game').innerText = t('ui.new_game');
+
+    // Preserve shine span inside primary button
+    const newGameBtn = document.getElementById('btn-new-game');
+    newGameBtn.innerHTML = '<span class="btn-shine"></span>' + t('ui.new_game');
     document.getElementById('btn-continue-game').innerText = t('ui.continue_game');
 
     // Enable/disable continue
     document.getElementById('btn-continue-game').disabled = !hasSavedGame();
 
-    // Show with animation
+    // Spawn particles
+    spawnTitleParticles();
+
+    // Show with cinematic GSAP sequence
     const ts = document.getElementById('title-screen');
     ts.style.display = 'flex';
-    gsap.fromTo(ts, { opacity: 0 }, { opacity: 1, duration: 0.8 });
-    gsap.fromTo('#title-game-name', { y: -30, opacity: 0 }, { y: 0, opacity: 1, duration: 1, delay: 0.3, ease: "power2.out" });
-    gsap.fromTo('#title-subtitle', { opacity: 0 }, { opacity: 1, duration: 0.8, delay: 0.6 });
-    gsap.fromTo('#title-buttons', { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.8, delay: 0.8, ease: "power2.out" });
+
+    const tl = gsap.timeline();
+    // Fade in the whole screen
+    tl.fromTo(ts, { opacity: 0 }, { opacity: 1, duration: 1.2, ease: "power2.out" });
+    // Ornaments expand from center
+    tl.fromTo('.title-ornament', { width: 0, opacity: 0 }, {
+        width: 300, opacity: 1, duration: 0.8, ease: "power3.out", stagger: 0.15
+    }, "-=0.6");
+    // Title rises in with scale
+    tl.fromTo('#title-game-name', { y: -40, opacity: 0, scale: 0.9 }, {
+        y: 0, opacity: 1, scale: 1, duration: 1.2, ease: "back.out(1.2)"
+    }, "-=0.5");
+    // Subtitle fades in
+    tl.fromTo('#title-subtitle', { opacity: 0, y: 15 }, {
+        opacity: 1, y: 0, duration: 1, ease: "power2.out"
+    }, "-=0.6");
+    // Buttons slide up
+    tl.fromTo('#title-buttons', { y: 40, opacity: 0 }, {
+        y: 0, opacity: 1, duration: 0.8, ease: "power2.out"
+    }, "-=0.4");
+    // Language switcher
+    tl.fromTo('#language-switcher', { opacity: 0, y: -10 }, {
+        opacity: 1, y: 0, duration: 0.5, ease: "power2.out"
+    }, "-=0.4");
+}
+
+function spawnDiffParticles() {
+    const container = document.getElementById('diff-particles');
+    if (!container) return;
+    container.innerHTML = '';
+    const count = 50;
+    for (let i = 0; i < count; i++) {
+        const p = document.createElement('div');
+        p.className = 'magic-particle';
+        const size = 3 + Math.random() * 5;
+        p.style.width = size + 'px';
+        p.style.height = size + 'px';
+        p.style.left = Math.random() * 100 + '%';
+        p.style.bottom = -(Math.random() * 20) + '%';
+        p.style.setProperty('--drift', (Math.random() * 80 - 40) + 'px');
+        p.style.animationDuration = (5 + Math.random() * 10) + 's';
+        p.style.animationDelay = (Math.random() * 6) + 's';
+        container.appendChild(p);
+    }
 }
 
 function showDifficultyScreen() {
-    const tl = gsap.timeline();
-    tl.to('#title-screen', { opacity: 0, duration: 0.4, ease: "power2.in" });
-    tl.set('#title-screen', { display: 'none' });
-    tl.add(() => {
+    // Kill any running title screen animations to prevent conflicts
+    gsap.killTweensOf('#title-screen');
+    gsap.killTweensOf('#title-game-name');
+    gsap.killTweensOf('#title-subtitle');
+    gsap.killTweensOf('#title-buttons');
+    gsap.killTweensOf('#language-switcher');
+    gsap.killTweensOf('.title-ornament');
+
+    screenTransition(() => {
+        // --- Hide title, prepare difficulty ---
+        document.getElementById('title-screen').style.display = 'none';
+        gsap.set('#title-screen', { opacity: 1 });
+
         // Update texts
         document.getElementById('difficulty-title').innerText = t('ui.select_difficulty');
         document.getElementById('diff-name-apprenti').innerText = t('ui.difficulty_apprenti');
@@ -606,21 +753,36 @@ function showDifficultyScreen() {
         document.getElementById('diff-desc-apprenti').innerText = t('ui.desc_apprenti');
         document.getElementById('diff-desc-elite').innerText = t('ui.desc_elite');
         document.getElementById('diff-desc-arcanes').innerText = t('ui.desc_arcanes');
-        document.getElementById('btn-back-title').innerText = t('ui.back');
+
+        spawnDiffParticles();
 
         const ds = document.getElementById('difficulty-screen');
+        // Reset children to hidden state
+        gsap.set('.diff-ornament-top', { width: 0, opacity: 0 });
+        gsap.set('#difficulty-title', { y: -20, opacity: 0 });
+        gsap.set('#difficulty-subtitle', { opacity: 0 });
+        gsap.set('.difficulty-card', { y: 60, opacity: 0, scale: 0.85 });
+
+        ds.style.opacity = '1';
         ds.style.display = 'flex';
-        gsap.fromTo(ds, { opacity: 0 }, { opacity: 1, duration: 0.5 });
-        gsap.fromTo('.difficulty-card', { y: 40, opacity: 0, scale: 0.9 }, { y: 0, opacity: 1, scale: 1, duration: 0.6, stagger: 0.12, ease: "back.out(1.5)" });
+    }).then(() => {
+        // Staggered entrance of difficulty elements AFTER curtains open
+        const tl = gsap.timeline();
+        tl.to('.diff-ornament-top', {
+            width: 400, opacity: 1, duration: 0.6, ease: "power3.out"
+        });
+        tl.to('#difficulty-title', {
+            y: 0, opacity: 1, duration: 0.7, ease: "power2.out"
+        }, "-=0.4");
+        tl.to('#difficulty-subtitle', {
+            opacity: 0.7, duration: 0.5, ease: "power2.out"
+        }, "-=0.4");
+        tl.to('.difficulty-card', {
+            y: 0, opacity: 1, scale: 1, duration: 0.7, stagger: 0.15, ease: "back.out(1.4)"
+        }, "-=0.3");
     });
 }
 
-function backToTitle() {
-    const tl = gsap.timeline();
-    tl.to('#difficulty-screen', { opacity: 0, duration: 0.4, ease: "power2.in" });
-    tl.set('#difficulty-screen', { display: 'none' });
-    tl.add(() => showTitleScreen());
-}
 
 function showQuitConfirm() {
     const overlay = document.getElementById('quit-confirm-overlay');
@@ -658,10 +820,10 @@ function startNewGame(difficultyKey) {
     const preset = DIFFICULTY_PRESETS[difficultyKey] || DIFFICULTY_PRESETS.elite;
     state.difficulty = difficultyKey;
 
-    const tl = gsap.timeline();
-    tl.to('#difficulty-screen', { opacity: 0, duration: 0.5, ease: "power2.in" });
-    tl.set('#difficulty-screen', { display: 'none' });
-    tl.add(() => {
+    screenTransition(() => {
+        document.getElementById('difficulty-screen').style.display = 'none';
+        gsap.set('#difficulty-screen', { opacity: 1 });
+
         // Show HUD
         document.getElementById('player-stats').style.display = '';
         document.getElementById('grimoire-btn').style.display = '';
@@ -687,10 +849,19 @@ function startNewGame(difficultyKey) {
 
 function continueGame() {
     if (!hasSavedGame()) return;
-    const tl = gsap.timeline();
-    tl.to('#title-screen', { opacity: 0, duration: 0.5, ease: "power2.in" });
-    tl.set('#title-screen', { display: 'none' });
-    tl.add(() => {
+
+    // Kill title animations
+    gsap.killTweensOf('#title-screen');
+    gsap.killTweensOf('#title-game-name');
+    gsap.killTweensOf('#title-subtitle');
+    gsap.killTweensOf('#title-buttons');
+    gsap.killTweensOf('#language-switcher');
+    gsap.killTweensOf('.title-ornament');
+
+    screenTransition(() => {
+        document.getElementById('title-screen').style.display = 'none';
+        gsap.set('#title-screen', { opacity: 1 });
+
         document.getElementById('player-stats').style.display = '';
         document.getElementById('grimoire-btn').style.display = '';
         document.getElementById('menu-btn').style.display = '';
@@ -721,7 +892,6 @@ function initGame() {
     // Title & Difficulty
     document.getElementById('btn-new-game').addEventListener('click', () => showDifficultyScreen());
     document.getElementById('btn-continue-game').addEventListener('click', () => continueGame());
-    document.getElementById('btn-back-title').addEventListener('click', () => backToTitle());
     document.querySelectorAll('.difficulty-card').forEach(card => {
         card.addEventListener('click', () => startNewGame(card.dataset.difficulty));
     });
@@ -731,10 +901,40 @@ function initGame() {
     document.getElementById('btn-quit-yes').addEventListener('click', () => quitToTitle());
     document.getElementById('btn-quit-no').addEventListener('click', () => hideQuitConfirm());
 
-    // 2. Setup UI and show title screen
+    // 2. Setup UI and show correct screen
     updateLocalizedUI();
     initComboModal();
-    showTitleScreen();
+
+    if (DEV_MODE) {
+        console.log("Mode DEV : Démarrage rapide...");
+        // Simule le choix de difficulté "elite" par défaut ou continue la partie
+        if (hasSavedGame()) {
+            // Option 1 : Toujours charger la sauvegarde en mode dev
+            // On le fait sans transition pour être plus rapide
+            document.getElementById('title-screen').style.display = 'none';
+            document.getElementById('player-stats').style.display = '';
+            document.getElementById('grimoire-btn').style.display = '';
+            document.getElementById('menu-btn').style.display = '';
+            document.getElementById('main-game-bg').style.display = 'block';
+            if (loadGame()) {
+                updateUI();
+                showMap();
+            } else {
+                startNewGame("elite");
+            }
+        } else {
+            // Option 2 : Nouvelle partie directe si pas de sauvegarde
+            document.getElementById('title-screen').style.display = 'none';
+            document.getElementById('difficulty-screen').style.display = 'none';
+            document.getElementById('player-stats').style.display = '';
+            document.getElementById('grimoire-btn').style.display = '';
+            document.getElementById('menu-btn').style.display = '';
+            document.getElementById('main-game-bg').style.display = 'block';
+            startNewGame("elite");
+        }
+    } else {
+        showTitleScreen();
+    }
 }
 
 function updateLocalizedUI() {
@@ -765,8 +965,6 @@ function updateLocalizedUI() {
     if (bcg) bcg.innerText = t('ui.continue_game');
     const dt = document.getElementById('difficulty-title');
     if (dt) dt.innerText = t('ui.select_difficulty');
-    const bbt = document.getElementById('btn-back-title');
-    if (bbt) bbt.innerText = t('ui.back');
 
     updateUI();
     highlightLanguageButtons();
@@ -948,6 +1146,7 @@ function updateUI() {
     // Nouveaux overlays dynamiques sur la carte boss (Corners only)
     if (state.enemy) {
         document.getElementById('enemy-hp-overlay').innerText = state.enemy.hp;
+        document.getElementById('enemy-attack-overlay').innerText = state.enemy.attack;
     }
 
     updateComboDisplay();
@@ -1160,9 +1359,6 @@ async function executeTurn() {
             yoyo: true,
             onComplete: () => gsap.set(gameContainer, { x: 0, y: 0 })
         });
-
-        // Flash de couleur de fond (plus rapide)
-        gsap.fromTo("body", { backgroundColor: "#800" }, { backgroundColor: "#1a1005", duration: 0.5 });
 
         // Dégâts sur le joueur
         animateDamageText(state.enemy.attack, "#player-zone");

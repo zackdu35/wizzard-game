@@ -15,10 +15,24 @@
 </head>
 
 <body>
+    <div id="main-game-bg"></div>
     <div class="screen-blood-vignette"></div>
+
+    <!-- Screen Transition Overlay -->
+    <div id="screen-transition">
+        <div class="transition-curtain transition-curtain-left"></div>
+        <div class="transition-curtain transition-curtain-right"></div>
+        <div class="transition-gold-line"></div>
+    </div>
 
     <!-- Title Screen -->
     <div id="title-screen">
+        <!-- Magical Particles -->
+        <div id="title-particles"></div>
+        <!-- Fog Layer -->
+        <div id="title-fog"></div>
+        <div id="title-fog-2"></div>
+
         <div id="language-switcher">
             <button onclick="changeLanguage('fr')">FR</button>
             <button onclick="changeLanguage('it')">IT</button>
@@ -30,7 +44,10 @@
             <p id="title-subtitle">Roguelike Poker</p>
             <div class="title-ornament"></div>
             <div id="title-buttons">
-                <button id="btn-new-game" class="title-btn title-btn-primary">NOUVELLE PARTIE</button>
+                <button id="btn-new-game" class="title-btn title-btn-primary">
+                    <span class="btn-shine"></span>
+                    NOUVELLE PARTIE
+                </button>
                 <button id="btn-continue-game" class="title-btn title-btn-secondary" disabled>CONTINUER</button>
             </div>
         </div>
@@ -38,28 +55,37 @@
 
     <!-- Difficulty Selection Screen -->
     <div id="difficulty-screen">
+        <div id="diff-particles"></div>
+        <div class="diff-ornament-top"></div>
         <h1 id="difficulty-title">CHOISISSEZ VOTRE DESTINÉE</h1>
+        <p id="difficulty-subtitle">Chaque sentier forge un destin différent</p>
         <div id="difficulty-cards">
             <div class="difficulty-card diff-apprenti" data-difficulty="apprenti">
+                <div class="diff-card-glow"></div>
                 <div class="diff-icon">&#9733;</div>
                 <h2 class="diff-name" id="diff-name-apprenti">Apprenti</h2>
+                <div class="diff-separator"></div>
                 <p class="diff-desc" id="diff-desc-apprenti">Pour les jeunes sorciers.</p>
                 <div class="diff-stats">150 PV | 4 Def.</div>
             </div>
             <div class="difficulty-card diff-elite" data-difficulty="elite">
-                <div class="diff-icon">&#9734;&#9734;</div>
+                <div class="diff-card-glow"></div>
+                <div class="diff-recommended">★ RECOMMANDÉ</div>
+                <div class="diff-icon">&#9733;&#9733;</div>
                 <h2 class="diff-name" id="diff-name-elite">Sorcier d'Elite</h2>
+                <div class="diff-separator"></div>
                 <p class="diff-desc" id="diff-desc-elite">L'experience classique.</p>
                 <div class="diff-stats">100 PV | 3 Def.</div>
             </div>
             <div class="difficulty-card diff-arcanes" data-difficulty="arcanes">
+                <div class="diff-card-glow"></div>
                 <div class="diff-icon">&#9733;&#9733;&#9733;</div>
                 <h2 class="diff-name" id="diff-name-arcanes">Maitre des Arcanes</h2>
+                <div class="diff-separator"></div>
                 <p class="diff-desc" id="diff-desc-arcanes">Pour les temeraires.</p>
                 <div class="diff-stats">80 PV | 2 Def.</div>
             </div>
         </div>
-        <button id="btn-back-title" class="title-btn title-btn-secondary" style="width:220px; height:55px; font-size:1.1rem; margin-top:30px;">RETOUR</button>
     </div>
 
     <!-- Interface Fixe (HUD) - Ne bouge jamais -->
@@ -87,6 +113,7 @@
         <section id="play-area">
             <!-- Boss Card Interface (Plaque Style) -->
             <div id="boss-card">
+                <div id="enemy-attack-overlay" class="overlay-value" title="Attaque">0</div>
                 <div id="enemy-portrait"></div>
                 <div class="flash-red"></div>
 
