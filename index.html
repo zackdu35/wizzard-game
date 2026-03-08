@@ -17,7 +17,53 @@
 <body>
     <div class="screen-blood-vignette"></div>
 
+    <!-- Title Screen -->
+    <div id="title-screen">
+        <div id="language-switcher">
+            <button onclick="changeLanguage('fr')">FR</button>
+            <button onclick="changeLanguage('it')">IT</button>
+            <button onclick="changeLanguage('en')">EN</button>
+        </div>
+        <div id="title-content">
+            <div class="title-ornament"></div>
+            <h1 id="title-game-name">LA MAIN DU SORCIER</h1>
+            <p id="title-subtitle">Roguelike Poker</p>
+            <div class="title-ornament"></div>
+            <div id="title-buttons">
+                <button id="btn-new-game" class="title-btn title-btn-primary">NOUVELLE PARTIE</button>
+                <button id="btn-continue-game" class="title-btn title-btn-secondary" disabled>CONTINUER</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Difficulty Selection Screen -->
+    <div id="difficulty-screen">
+        <h1 id="difficulty-title">CHOISISSEZ VOTRE DESTINÉE</h1>
+        <div id="difficulty-cards">
+            <div class="difficulty-card diff-apprenti" data-difficulty="apprenti">
+                <div class="diff-icon">&#9733;</div>
+                <h2 class="diff-name" id="diff-name-apprenti">Apprenti</h2>
+                <p class="diff-desc" id="diff-desc-apprenti">Pour les jeunes sorciers.</p>
+                <div class="diff-stats">150 PV | 4 Def.</div>
+            </div>
+            <div class="difficulty-card diff-elite" data-difficulty="elite">
+                <div class="diff-icon">&#9734;&#9734;</div>
+                <h2 class="diff-name" id="diff-name-elite">Sorcier d'Elite</h2>
+                <p class="diff-desc" id="diff-desc-elite">L'experience classique.</p>
+                <div class="diff-stats">100 PV | 3 Def.</div>
+            </div>
+            <div class="difficulty-card diff-arcanes" data-difficulty="arcanes">
+                <div class="diff-icon">&#9733;&#9733;&#9733;</div>
+                <h2 class="diff-name" id="diff-name-arcanes">Maitre des Arcanes</h2>
+                <p class="diff-desc" id="diff-desc-arcanes">Pour les temeraires.</p>
+                <div class="diff-stats">80 PV | 2 Def.</div>
+            </div>
+        </div>
+        <button id="btn-back-title" class="title-btn title-btn-secondary" style="width:220px; height:55px; font-size:1.1rem; margin-top:30px;">RETOUR</button>
+    </div>
+
     <!-- Interface Fixe (HUD) - Ne bouge jamais -->
+    <button id="menu-btn" class="hud-btn" title="Menu">&#9776;</button>
     <button id="grimoire-btn" class="hud-btn"></button>
     <aside id="player-stats">
         <div class="stat-box">
@@ -36,13 +82,6 @@
 
     <!-- Conteneur Principal (C'est lui qu'on va secouer) -->
     <div id="game-container">
-        <header id="top-bar">
-            <div id="language-switcher">
-                <button onclick="changeLanguage('fr')">FR</button>
-                <button onclick="changeLanguage('it')">IT</button>
-                <button onclick="changeLanguage('en')">EN</button>
-            </div>
-        </header>
 
         <!-- Play Area (Center) -->
         <section id="play-area">
@@ -142,7 +181,7 @@
             <p class="stat-line">Galleons gagnes: <span id="stat-gold">0</span></p>
             <p class="stat-line">Boss vaincu: <span id="stat-boss">---</span></p>
         </div>
-        <button id="btn-restart" class="restart-btn" onclick="location.reload()"></button>
+        <button id="btn-restart" class="restart-btn" onclick="clearSave(); location.reload()"></button>
     </div>
 
     <!-- Diagon Alley -->
@@ -156,6 +195,17 @@
         </div>
 
         <button id="btn-continue" class="primary-btn"></button>
+    </div>
+
+    <!-- Quit Confirmation Dialog -->
+    <div id="quit-confirm-overlay">
+        <div id="quit-confirm-box">
+            <p id="quit-confirm-text">Abandonner la partie et retourner au menu ?</p>
+            <div id="quit-confirm-buttons">
+                <button id="btn-quit-yes">OUI</button>
+                <button id="btn-quit-no">NON</button>
+            </div>
+        </div>
     </div>
 
     <script src="engine.js"></script>

@@ -58,6 +58,13 @@ const BOSS_POOL = [
     }
 ];
 
+// --- PRESETS DE DIFFICULTÉ ---
+const DIFFICULTY_PRESETS = {
+    apprenti: { hp: 150, discards: 4, enemyMult: 0.8, critChance: 0.05 },
+    elite:    { hp: 100, discards: 3, enemyMult: 1.0, critChance: 0.03 },
+    arcanes:  { hp: 80,  discards: 2, enemyMult: 1.3, critChance: 0.02 }
+};
+
 // --- TYPES DE NOEUDS & TEMPLATE DE RUN ---
 const NODE_TYPES = {
     COMBAT: "combat",
@@ -108,6 +115,7 @@ const state = {
     hand: [],
     selectedIndices: [],
     isAnimating: false,
+    difficulty: "elite",
     // Critical system
     criticalCardIds: new Set(),
     critChance: 0.03,   // 3% per card
@@ -153,6 +161,10 @@ function generateRun() {
     const boss = BOSS_POOL[Math.floor(Math.random() * BOSS_POOL.length)];
     state.run.stats.bossId = boss.id;
 
+    // Difficulty multiplier for enemy stats
+    const preset = DIFFICULTY_PRESETS[state.difficulty] || DIFFICULTY_PRESETS.elite;
+    const eMult = preset.enemyMult;
+
     const usedEnemyIds = new Set();
 
     RUN_TEMPLATE.forEach((columnTemplate, colIndex) => {
@@ -172,10 +184,12 @@ function generateRun() {
                 const pool = tierEnemies.length > 0 ? tierEnemies : ENEMY_POOL.filter(e => e.tier === template.tier);
                 const picked = pool[Math.floor(Math.random() * pool.length)];
                 usedEnemyIds.add(picked.id);
-                node.enemy = { id: picked.id, hp: picked.hp, maxHp: picked.hp, attack: picked.attack, image: picked.image };
+                const eHp = Math.floor(picked.hp * eMult);
+                node.enemy = { id: picked.id, hp: eHp, maxHp: eHp, attack: Math.floor(picked.attack * eMult), image: picked.image };
                 node.tier = template.tier;
             } else if (template.type === NODE_TYPES.BOSS) {
-                node.enemy = { id: boss.id, hp: boss.hp, maxHp: boss.hp, attack: boss.attack, image: boss.image };
+                const bHp = Math.floor(boss.hp * eMult);
+                node.enemy = { id: boss.id, hp: bHp, maxHp: bHp, attack: Math.floor(boss.attack * eMult), image: boss.image };
                 node.malus = boss.malus;
             }
             // Shop and Dortoir nodes have no enemy
@@ -310,12 +324,25 @@ function updateMapNodeInfo() {
 }
 
 function showMap() {
+    // Auto-skip map if current column has only 1 node
+    const column = state.run.columns[state.run.currentColumnIndex];
+    if (column && column.nodes.length === 1) {
+        column.selectedNodeIndex = 0;
+        saveGame();
+        // Directly enter the only node (no map display)
+        enterCurrentNode();
+        return;
+    }
+
     document.getElementById('map-screen').style.display = 'flex';
     document.getElementById('game-container').style.opacity = '0';
     document.getElementById('sanctuary-screen').style.display = 'none';
     document.getElementById('dortoir-screen').style.display = 'none';
     renderMap();
     gsap.fromTo('#map-screen', { opacity: 0 }, { opacity: 1, duration: 0.6 });
+
+    // Auto-save on map
+    saveGame();
 }
 
 async function enterCurrentNode() {
@@ -428,6 +455,7 @@ function advanceToNextNode() {
 }
 
 function showRunVictoryScreen() {
+    clearSave();
     const overlay = document.getElementById('game-over-overlay');
     overlay.style.display = 'flex';
     overlay.style.opacity = 0;
@@ -447,9 +475,237 @@ function showRunVictoryScreen() {
 }
 
 // --- INITIALISATION ---
+// --- SAVE SYSTEM ---
+const SAVE_KEY = 'sorcererHand_save';
+
+function saveGame() {
+    const saveData = {
+        version: 1,
+        timestamp: Date.now(),
+        difficulty: state.difficulty,
+        player: {
+            hp: state.player.hp,
+            maxHp: state.player.maxHp,
+            gold: state.player.gold,
+            discards: state.player.discards,
+            maxDiscards: state.player.maxDiscards,
+            blessings: [...state.player.blessings]
+        },
+        run: {
+            columns: state.run.columns.map(col => ({
+                selectedNodeIndex: col.selectedNodeIndex,
+                nodes: col.nodes.map(node => ({
+                    type: node.type,
+                    status: node.status,
+                    tier: node.tier || undefined,
+                    enemy: node.enemy ? { ...node.enemy } : undefined,
+                    malus: node.malus ? { id: node.malus.id, description: node.malus.description } : undefined
+                }))
+            })),
+            currentColumnIndex: state.run.currentColumnIndex,
+            isComplete: state.run.isComplete,
+            stats: { ...state.run.stats }
+        },
+        critChance: state.critChance,
+        critBonus: state.critBonus
+    };
+    try { localStorage.setItem(SAVE_KEY, JSON.stringify(saveData)); }
+    catch (e) { console.warn('Save failed:', e); }
+}
+
+function loadGame() {
+    try {
+        const raw = localStorage.getItem(SAVE_KEY);
+        if (!raw) return false;
+        const s = JSON.parse(raw);
+
+        state.difficulty = s.difficulty || "elite";
+        state.player.hp = s.player.hp;
+        state.player.maxHp = s.player.maxHp;
+        state.player.gold = s.player.gold;
+        state.player.discards = s.player.discards;
+        state.player.maxDiscards = s.player.maxDiscards;
+        state.player.blessings = s.player.blessings || [];
+        state.run.currentColumnIndex = s.run.currentColumnIndex;
+        state.run.isComplete = s.run.isComplete;
+        state.run.stats = s.run.stats;
+        if (s.critChance !== undefined) state.critChance = s.critChance;
+        if (s.critBonus !== undefined) state.critBonus = s.critBonus;
+
+        // Restore columns (re-attach malus.apply from BOSS_POOL)
+        state.run.columns = s.run.columns.map(col => ({
+            selectedNodeIndex: col.selectedNodeIndex,
+            nodes: col.nodes.map(node => {
+                const restored = { ...node };
+                if (node.malus && node.malus.id) {
+                    const boss = BOSS_POOL.find(b => b.malus.id === node.malus.id);
+                    if (boss) restored.malus = { ...boss.malus };
+                }
+                return restored;
+            })
+        }));
+        return true;
+    } catch (e) {
+        console.warn('Load failed:', e);
+        clearSave();
+        return false;
+    }
+}
+
+function hasSavedGame() {
+    try { return localStorage.getItem(SAVE_KEY) !== null; }
+    catch (e) { return false; }
+}
+
+function clearSave() {
+    try { localStorage.removeItem(SAVE_KEY); }
+    catch (e) { console.warn('Clear save failed:', e); }
+}
+
+// --- TITLE & DIFFICULTY SCREENS ---
+function showTitleScreen() {
+    // Hide everything
+    document.getElementById('map-screen').style.display = 'none';
+    document.getElementById('game-container').style.opacity = '0';
+    document.getElementById('sanctuary-screen').style.display = 'none';
+    document.getElementById('dortoir-screen').style.display = 'none';
+    document.getElementById('game-over-overlay').style.display = 'none';
+    document.getElementById('difficulty-screen').style.display = 'none';
+    document.getElementById('player-stats').style.display = 'none';
+    document.getElementById('grimoire-btn').style.display = 'none';
+    document.getElementById('menu-btn').style.display = 'none';
+
+    // Update texts
+    document.getElementById('title-game-name').innerText = t('ui.title_name');
+    document.getElementById('title-subtitle').innerText = t('ui.title_subtitle');
+    document.getElementById('btn-new-game').innerText = t('ui.new_game');
+    document.getElementById('btn-continue-game').innerText = t('ui.continue_game');
+
+    // Enable/disable continue
+    document.getElementById('btn-continue-game').disabled = !hasSavedGame();
+
+    // Show with animation
+    const ts = document.getElementById('title-screen');
+    ts.style.display = 'flex';
+    gsap.fromTo(ts, { opacity: 0 }, { opacity: 1, duration: 0.8 });
+    gsap.fromTo('#title-game-name', { y: -30, opacity: 0 }, { y: 0, opacity: 1, duration: 1, delay: 0.3, ease: "power2.out" });
+    gsap.fromTo('#title-subtitle', { opacity: 0 }, { opacity: 1, duration: 0.8, delay: 0.6 });
+    gsap.fromTo('#title-buttons', { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.8, delay: 0.8, ease: "power2.out" });
+}
+
+function showDifficultyScreen() {
+    const tl = gsap.timeline();
+    tl.to('#title-screen', { opacity: 0, duration: 0.4, ease: "power2.in" });
+    tl.set('#title-screen', { display: 'none' });
+    tl.add(() => {
+        // Update texts
+        document.getElementById('difficulty-title').innerText = t('ui.select_difficulty');
+        document.getElementById('diff-name-apprenti').innerText = t('ui.difficulty_apprenti');
+        document.getElementById('diff-name-elite').innerText = t('ui.difficulty_elite');
+        document.getElementById('diff-name-arcanes').innerText = t('ui.difficulty_arcanes');
+        document.getElementById('diff-desc-apprenti').innerText = t('ui.desc_apprenti');
+        document.getElementById('diff-desc-elite').innerText = t('ui.desc_elite');
+        document.getElementById('diff-desc-arcanes').innerText = t('ui.desc_arcanes');
+        document.getElementById('btn-back-title').innerText = t('ui.back');
+
+        const ds = document.getElementById('difficulty-screen');
+        ds.style.display = 'flex';
+        gsap.fromTo(ds, { opacity: 0 }, { opacity: 1, duration: 0.5 });
+        gsap.fromTo('.difficulty-card', { y: 40, opacity: 0, scale: 0.9 }, { y: 0, opacity: 1, scale: 1, duration: 0.6, stagger: 0.12, ease: "back.out(1.5)" });
+    });
+}
+
+function backToTitle() {
+    const tl = gsap.timeline();
+    tl.to('#difficulty-screen', { opacity: 0, duration: 0.4, ease: "power2.in" });
+    tl.set('#difficulty-screen', { display: 'none' });
+    tl.add(() => showTitleScreen());
+}
+
+function showQuitConfirm() {
+    const overlay = document.getElementById('quit-confirm-overlay');
+    document.getElementById('quit-confirm-text').innerText = t('ui.quit_confirm');
+    document.getElementById('btn-quit-yes').innerText = t('ui.quit_yes');
+    document.getElementById('btn-quit-no').innerText = t('ui.quit_no');
+    overlay.style.display = 'flex';
+    gsap.fromTo(overlay, { opacity: 0 }, { opacity: 1, duration: 0.3 });
+    gsap.fromTo('#quit-confirm-box', { scale: 0.8, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.4, ease: "back.out(1.5)" });
+}
+
+function hideQuitConfirm() {
+    const overlay = document.getElementById('quit-confirm-overlay');
+    gsap.to(overlay, { opacity: 0, duration: 0.25, onComplete: () => overlay.style.display = 'none' });
+}
+
+function quitToTitle() {
+    const overlay = document.getElementById('quit-confirm-overlay');
+    overlay.style.display = 'none';
+
+    // Save current game progress before quitting
+    saveGame();
+
+    // Hide everything
+    document.getElementById('game-container').style.opacity = '0';
+    document.getElementById('map-screen').style.display = 'none';
+    document.getElementById('sanctuary-screen').style.display = 'none';
+    document.getElementById('dortoir-screen').style.display = 'none';
+    document.getElementById('game-over-overlay').style.display = 'none';
+
+    showTitleScreen();
+}
+
+function startNewGame(difficultyKey) {
+    const preset = DIFFICULTY_PRESETS[difficultyKey] || DIFFICULTY_PRESETS.elite;
+    state.difficulty = difficultyKey;
+
+    const tl = gsap.timeline();
+    tl.to('#difficulty-screen', { opacity: 0, duration: 0.5, ease: "power2.in" });
+    tl.set('#difficulty-screen', { display: 'none' });
+    tl.add(() => {
+        // Show HUD
+        document.getElementById('player-stats').style.display = '';
+        document.getElementById('grimoire-btn').style.display = '';
+        document.getElementById('menu-btn').style.display = '';
+
+        // Apply difficulty preset
+        state.player.hp = preset.hp;
+        state.player.maxHp = preset.hp;
+        state.player.gold = 0;
+        state.player.discards = preset.discards;
+        state.player.maxDiscards = preset.discards;
+        state.player.blessings = [];
+        state.critChance = preset.critChance;
+        state.critBonus = 0.25;
+        state.criticalCardIds = new Set();
+
+        clearSave();
+        generateRun();
+        updateUI();
+        showMap();
+    });
+}
+
+function continueGame() {
+    if (!hasSavedGame()) return;
+    const tl = gsap.timeline();
+    tl.to('#title-screen', { opacity: 0, duration: 0.5, ease: "power2.in" });
+    tl.set('#title-screen', { display: 'none' });
+    tl.add(() => {
+        document.getElementById('player-stats').style.display = '';
+        document.getElementById('grimoire-btn').style.display = '';
+        document.getElementById('menu-btn').style.display = '';
+        if (loadGame()) {
+            updateUI();
+            showMap();
+        } else {
+            showTitleScreen();
+        }
+    });
+}
+
 function initGame() {
     console.log("Démarrage du jeu de sorciers...");
-    // 1. Event Listeners
+    // 1. Event Listeners - Combat
     document.getElementById('btn-play').addEventListener('click', () => !state.isAnimating && executeTurn());
     document.getElementById('btn-discard').addEventListener('click', () => !state.isAnimating && discardAction());
     document.getElementById('btn-continue').addEventListener('click', () => continueFromShop());
@@ -458,15 +714,27 @@ function initGame() {
     document.getElementById('grimoire-btn').addEventListener('click', openGuide);
     document.getElementById('btn-close-guide').addEventListener('click', closeGuide);
 
-    // Map & Dortoir buttons
+    // Map & Dortoir
     document.getElementById('btn-enter-node').addEventListener('click', () => enterCurrentNode());
     document.getElementById('btn-dortoir-continue').addEventListener('click', () => continueFromDortoir());
 
-    // 2. Generate run and show map
+    // Title & Difficulty
+    document.getElementById('btn-new-game').addEventListener('click', () => showDifficultyScreen());
+    document.getElementById('btn-continue-game').addEventListener('click', () => continueGame());
+    document.getElementById('btn-back-title').addEventListener('click', () => backToTitle());
+    document.querySelectorAll('.difficulty-card').forEach(card => {
+        card.addEventListener('click', () => startNewGame(card.dataset.difficulty));
+    });
+
+    // Menu (quit to title)
+    document.getElementById('menu-btn').addEventListener('click', () => showQuitConfirm());
+    document.getElementById('btn-quit-yes').addEventListener('click', () => quitToTitle());
+    document.getElementById('btn-quit-no').addEventListener('click', () => hideQuitConfirm());
+
+    // 2. Setup UI and show title screen
     updateLocalizedUI();
     initComboModal();
-    generateRun();
-    showMap();
+    showTitleScreen();
 }
 
 function updateLocalizedUI() {
@@ -485,6 +753,20 @@ function updateLocalizedUI() {
     document.getElementById('sanctuary-title').innerText = t('ui.sanctuary_title');
     document.getElementById('sanctuary-gold-label').innerText = t('ui.galleons');
     document.getElementById('btn-continue').innerText = t('ui.continue_adventure');
+
+    // Title & Difficulty screen texts
+    const tn = document.getElementById('title-game-name');
+    if (tn) tn.innerText = t('ui.title_name');
+    const ts = document.getElementById('title-subtitle');
+    if (ts) ts.innerText = t('ui.title_subtitle');
+    const bng = document.getElementById('btn-new-game');
+    if (bng) bng.innerText = t('ui.new_game');
+    const bcg = document.getElementById('btn-continue-game');
+    if (bcg) bcg.innerText = t('ui.continue_game');
+    const dt = document.getElementById('difficulty-title');
+    if (dt) dt.innerText = t('ui.select_difficulty');
+    const bbt = document.getElementById('btn-back-title');
+    if (bbt) bbt.innerText = t('ui.back');
 
     updateUI();
     highlightLanguageButtons();
@@ -893,7 +1175,7 @@ async function executeTurn() {
 
     await tl2;
 
-    if (state.player.hp <= 0) { showEndOverlay(false); state.isAnimating = false; return; }
+    if (state.player.hp <= 0) { clearSave(); showEndOverlay(false); state.isAnimating = false; return; }
 
     state.selectedIndices.sort((a, b) => b - a).forEach(i => {
         state.criticalCardIds.delete(state.hand[i].id);
