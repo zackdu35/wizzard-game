@@ -31,7 +31,7 @@
 
 body {
     background-color: #1a1005;
-    background-image: url('assets/Gemini_Generated_Image_446xcq446xcq446x.webp');
+    background-image: url('assets/main_bg_premium.webp');
     background-size: cover;
     background-position: center;
     color: var(--text-primary);
@@ -1006,13 +1006,11 @@ button:disabled {
     right: 0;
     bottom: 0;
     background:
-        repeating-linear-gradient(
-            0deg,
+        repeating-linear-gradient(0deg,
             transparent,
             transparent 40px,
             rgba(199, 161, 59, 0.03) 40px,
-            rgba(199, 161, 59, 0.03) 41px
-        );
+            rgba(199, 161, 59, 0.03) 41px);
     pointer-events: none;
     z-index: 0;
 }
@@ -1066,14 +1064,12 @@ button:disabled {
     width: 60%;
     height: 1px;
     margin: 0 auto 25px;
-    background: linear-gradient(
-        to right,
-        transparent 0%,
-        rgba(199, 161, 59, 0.15) 20%,
-        rgba(199, 161, 59, 0.5) 50%,
-        rgba(199, 161, 59, 0.15) 80%,
-        transparent 100%
-    );
+    background: linear-gradient(to right,
+            transparent 0%,
+            rgba(199, 161, 59, 0.15) 20%,
+            rgba(199, 161, 59, 0.5) 50%,
+            rgba(199, 161, 59, 0.15) 80%,
+            transparent 100%);
     position: relative;
 }
 
@@ -1294,8 +1290,15 @@ button:disabled {
 }
 
 @keyframes crit-float {
-    0%, 100% { transform: translateX(-50%) translateY(0); }
-    50% { transform: translateX(-50%) translateY(-4px); }
+
+    0%,
+    100% {
+        transform: translateX(-50%) translateY(0);
+    }
+
+    50% {
+        transform: translateX(-50%) translateY(-4px);
+    }
 }
 
 .crit-popup {
@@ -1617,7 +1620,9 @@ button:disabled {
 }
 
 @keyframes pulse-glow {
-    0%, 100% {
+
+    0%,
+    100% {
         box-shadow: 0 0 15px rgba(197, 160, 89, 0.3);
     }
 
@@ -1785,7 +1790,7 @@ button:disabled {
 .title-ornament {
     width: 300px;
     height: 1px;
-    background: linear-gradient(to right, transparent 0%, rgba(199,161,59,0.15) 20%, rgba(199,161,59,0.5) 50%, rgba(199,161,59,0.15) 80%, transparent 100%);
+    background: linear-gradient(to right, transparent 0%, rgba(199, 161, 59, 0.15) 20%, rgba(199, 161, 59, 0.5) 50%, rgba(199, 161, 59, 0.15) 80%, transparent 100%);
     position: relative;
     margin: 8px 0;
 }
@@ -1930,6 +1935,7 @@ button:disabled {
 .diff-apprenti {
     border-color: rgba(76, 175, 80, 0.4);
 }
+
 .diff-apprenti:hover {
     box-shadow: 0 0 30px rgba(76, 175, 80, 0.3), 0 20px 40px rgba(0, 0, 0, 0.5);
     border-color: rgba(76, 175, 80, 0.8);
@@ -1938,6 +1944,7 @@ button:disabled {
 .diff-elite {
     border-color: rgba(199, 161, 59, 0.4);
 }
+
 .diff-elite:hover {
     box-shadow: 0 0 30px rgba(199, 161, 59, 0.3), 0 20px 40px rgba(0, 0, 0, 0.5);
     border-color: rgba(199, 161, 59, 0.8);
@@ -1946,6 +1953,7 @@ button:disabled {
 .diff-arcanes {
     border-color: rgba(231, 76, 60, 0.4);
 }
+
 .diff-arcanes:hover {
     box-shadow: 0 0 30px rgba(231, 76, 60, 0.3), 0 20px 40px rgba(0, 0, 0, 0.5);
     border-color: rgba(231, 76, 60, 0.8);
@@ -1986,22 +1994,27 @@ button:disabled {
         font-size: 2.8rem;
         letter-spacing: 6px;
     }
+
     #title-subtitle {
         font-size: 1rem;
         letter-spacing: 4px;
     }
+
     .title-btn {
         height: 60px;
         font-size: 1.1rem;
     }
+
     #difficulty-title {
         font-size: 1.8rem;
         letter-spacing: 4px;
     }
+
     #difficulty-cards {
         flex-direction: column;
         gap: 15px;
     }
+
     .difficulty-card {
         width: 100%;
         max-width: 300px;
