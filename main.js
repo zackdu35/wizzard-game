@@ -323,6 +323,8 @@ function updateMapNodeInfo() {
 }
 
 function showMap() {
+    stopEnemyParticles();
+
     // Auto-skip map if current column has only 1 node
     const column = state.run.columns[state.run.currentColumnIndex];
     if (column && column.nodes.length === 1) {
@@ -1013,6 +1015,9 @@ async function startNewFight() {
     document.getElementById('hand-container').innerHTML = '';
     document.getElementById('combo-name').innerText = "—";
 
+    // Entrée dramatique du monstre
+    animateBossEntrance();
+
     // Tirage main initiale
     for (let i = 0; i < 8; i++) {
         if (state.deck.length > 0) {
@@ -1399,6 +1404,9 @@ async function victorySequence() {
     state.run.stats.enemiesDefeated++;
     state.run.stats.totalGoldEarned += gains;
 
+    // Stop ambient monster effects
+    stopEnemyParticles();
+
     await new Promise(r => setTimeout(r, 1000));
 
     // Fade out game container, then go to map
@@ -1513,6 +1521,121 @@ function screenShake(t) {
     return gsap.fromTo(t, { x: -10 }, { x: 10, duration: 0.05, repeat: 10, yoyo: true, onComplete: () => gsap.to(t, { x: 0, duration: 0.1 }) });
 }
 
+// --- SYSTÈME DE PARTICULES MONSTRE ---
+let enemyParticleInterval = null;
+
+function spawnEnemyParticle() {
+    const container = document.getElementById('enemy-particles');
+    if (!container) return;
+
+    const particle = document.createElement('div');
+    particle.className = 'enemy-particle';
+
+    // Taille aléatoire (3-7px)
+    const size = 3 + Math.random() * 4;
+    particle.style.width = size + 'px';
+    particle.style.height = size + 'px';
+
+    // Couleurs braises : rouge, orange, ambre
+    const colors = [
+        'rgba(255, 80, 20, 0.8)',
+        'rgba(255, 140, 40, 0.7)',
+        'rgba(255, 50, 10, 0.9)',
+        'rgba(255, 180, 60, 0.6)',
+        'rgba(200, 40, 10, 0.8)'
+    ];
+    particle.style.background = colors[Math.floor(Math.random() * colors.length)];
+    particle.style.boxShadow = `0 0 ${size * 2}px ${particle.style.background}`;
+
+    // Position de départ aléatoire (dans la zone du boss)
+    const startX = 10 + Math.random() * 80; // 10% à 90% de la largeur
+    const startY = 60 + Math.random() * 40; // Partie basse du monstre
+    particle.style.left = startX + '%';
+    particle.style.bottom = (100 - startY) + '%';
+
+    container.appendChild(particle);
+
+    // Animation GSAP : flotte vers le haut avec oscillation
+    const drift = -30 + Math.random() * 60;
+    gsap.fromTo(particle,
+        { opacity: 0, scale: 0 },
+        {
+            opacity: 0.8,
+            scale: 1,
+            duration: 0.3,
+            onComplete: () => {
+                gsap.to(particle, {
+                    y: -(80 + Math.random() * 120),
+                    x: drift,
+                    opacity: 0,
+                    scale: 0.3,
+                    duration: 1.5 + Math.random() * 2,
+                    ease: "power1.out",
+                    onComplete: () => particle.remove()
+                });
+            }
+        }
+    );
+}
+
+function startEnemyParticles() {
+    stopEnemyParticles();
+    // Spawn initial burst
+    for (let i = 0; i < 5; i++) {
+        setTimeout(() => spawnEnemyParticle(), i * 200);
+    }
+    // Continuous spawn
+    enemyParticleInterval = setInterval(() => {
+        spawnEnemyParticle();
+    }, 400 + Math.random() * 300);
+}
+
+function stopEnemyParticles() {
+    if (enemyParticleInterval) {
+        clearInterval(enemyParticleInterval);
+        enemyParticleInterval = null;
+    }
+    const container = document.getElementById('enemy-particles');
+    if (container) container.innerHTML = '';
+}
+
+// --- ENTRÉE DRAMATIQUE DU MONSTRE ---
+function animateBossEntrance() {
+    const bossCard = document.getElementById('boss-card');
+    if (!bossCard) return;
+
+    const tl = gsap.timeline();
+    const portrait = document.getElementById('enemy-portrait');
+
+    // State initial : invisible, légèrement plus grand (émerge de l'ombre)
+    gsap.set(bossCard, { opacity: 0 });
+    gsap.set(portrait, { scale: 1.15, filter: 'brightness(0)' });
+
+    // 1. Fade in sombre
+    tl.to(bossCard, {
+        opacity: 1,
+        duration: 0.6,
+        ease: "power2.out"
+    });
+
+    // 2. Le portrait se révèle (zoom-out + brightness)
+    tl.to(portrait, {
+        scale: 1,
+        filter: 'brightness(1)',
+        duration: 0.8,
+        ease: "power2.out"
+    }, "-=0.4");
+
+    // 3. Libérer les styles inline pour la respiration CSS + démarrer particules
+    tl.add(() => {
+        gsap.set(bossCard, { clearProps: "opacity" });
+        gsap.set(portrait, { clearProps: "transform,filter" });
+        startEnemyParticles();
+    });
+
+    return tl;
+}
+
 function animateDamageText(d, pS) {
     const p = document.querySelector(pS);
     if (!p) return;
@@ -1524,6 +1647,7 @@ function animateDamageText(d, pS) {
 }
 
 function showEndOverlay(isWin) {
+    stopEnemyParticles();
     const overlay = document.getElementById('game-over-overlay');
     overlay.style.display = 'flex'; overlay.style.opacity = 0;
     const title = document.getElementById('game-over-title');
