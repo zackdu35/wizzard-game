@@ -1280,41 +1280,51 @@ async function executeTurn() {
         await new Promise(r => setTimeout(r, 400));
     }
 
-    // --- PHASE 0.5: Brûler les cartes hors-combo ---
+    // --- PHASE 0.5: Brûler les cartes hors-combo (Désagrégation) ---
     if (burnWrappers.length > 0) {
-        const burnTl = gsap.timeline();
         const burnContainers = burnWrappers.map(w => w.querySelector('.card-container')).filter(Boolean);
+        const burnTl = gsap.timeline();
 
-        // Phase 1: Flash lumineux — la carte s'embrase
+        // 1. Embrasement immédiat
         burnTl.to(burnContainers, {
-            filter: 'brightness(2.5) sepia(1) saturate(4)',
-            boxShadow: '0 0 25px 10px rgba(255, 100, 20, 0.7), 0 0 50px 20px rgba(255, 60, 10, 0.4)',
-            borderColor: '#ff6633',
-            scale: 1.05,
-            duration: 0.3,
-            stagger: 0.08,
+            filter: 'url(#burn-filter) brightness(2.5) sepia(0.8) saturate(3) hue-rotate(-20deg)',
+            boxShadow: '0 0 40px 15px rgba(255, 80, 0, 0.8), 0 0 80px 30px rgba(255, 40, 0, 0.4)',
+            borderColor: '#ff4400',
+            scale: 1.08,
+            duration: 0.4,
+            stagger: 0.1,
             ease: "power2.out"
         });
 
-        // Phase 2: Consume — la carte se consume et disparaît
-        burnTl.to(burnContainers, {
-            filter: 'brightness(0) saturate(0)',
-            boxShadow: '0 0 0px 0px rgba(255, 100, 20, 0)',
-            scale: 0.7,
-            duration: 0.4,
-            stagger: 0.08,
-            ease: "power2.in"
-        });
-        burnTl.to(burnWrappers, {
-            opacity: 0,
-            duration: 0.3,
-            stagger: 0.08,
+        // 2. Désagrégation (Distorsion + Flou + Dispersion)
+        // On anime les attributs de l'SVG filter via GSAP
+        const dispMap = document.getElementById('burn-displacement');
+        const matrix = document.getElementById('burn-matrix');
+
+        burnTl.to(dispMap, {
+            attr: { scale: 100 },
+            duration: 0.8,
             ease: "power1.in"
-        }, "-=0.3");
+        }, "-=0.2");
+
+        burnTl.to(burnContainers, {
+            opacity: 0,
+            y: -100, // Les cendres montent
+            x: () => -50 + Math.random() * 100,
+            rotation: () => -20 + Math.random() * 40,
+            blur: 15,
+            scale: 1.2,
+            duration: 0.8,
+            stagger: 0.1,
+            ease: "power1.in"
+        }, "-=0.8");
 
         await burnTl;
 
-        // Cacher les cartes brûlées SANS changer le layout (visibility au lieu de display)
+        // Reset filter attributes for next use
+        gsap.set(dispMap, { attr: { scale: 0 } });
+
+        // Cacher proprement
         burnWrappers.forEach(w => {
             w.style.visibility = 'hidden';
             w.style.pointerEvents = 'none';
