@@ -6,7 +6,7 @@ const ENEMY_POOL = [
     // Tier 1 (nodes 1-2): low HP, low attack
     { id: "troll", hp: 200, attack: 10, tier: 1, image: "enemy_troll.webp" },
     { id: "spider", hp: 180, attack: 12, tier: 1, image: "giant-spider-ennemy.webp" },
-    { id: "gnome", hp: 150, attack: 8, tier: 1, image: "enemy_troll.webp" },
+    { id: "gnome", hp: 150, attack: 8, tier: 1, image: "gnome-ennemy.png" },
     { id: "pixie", hp: 170, attack: 11, tier: 1, image: "enemy_troll.webp" },
     // Tier 2 (nodes 4-5): medium HP, medium attack
     { id: "basilisk", hp: 300, attack: 15, tier: 2, image: "enemy_troll.webp" },
