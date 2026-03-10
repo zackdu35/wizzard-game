@@ -1,5 +1,5 @@
 // --- CONFIGURATION DEV ---
-const DEV_MODE = true; // Passez à false pour désactiver le mode développeur
+const DEV_MODE = false; // Passez à false pour désactiver le mode développeur
 
 // --- POOL D'ENNEMIS ---
 const ENEMY_POOL = [
@@ -7,12 +7,12 @@ const ENEMY_POOL = [
     { id: "troll", hp: 200, attack: 10, tier: 1, image: "enemy_troll.webp" },
     { id: "spider", hp: 180, attack: 12, tier: 1, image: "giant-spider-ennemy.webp" },
     { id: "gnome", hp: 150, attack: 8, tier: 1, image: "gnome-ennemy.png" },
-    { id: "pixie", hp: 170, attack: 11, tier: 1, image: "enemy_troll.webp" },
+    { id: "pixie", hp: 170, attack: 11, tier: 1, image: "Cornish Pixie.png" },
     // Tier 2 (nodes 4-5): medium HP, medium attack
-    { id: "basilisk", hp: 300, attack: 15, tier: 2, image: "enemy_troll.webp" },
-    { id: "boggart", hp: 280, attack: 18, tier: 2, image: "enemy_troll.webp" },
-    { id: "hippogriff", hp: 320, attack: 14, tier: 2, image: "enemy_troll.webp" },
-    { id: "skrewt", hp: 260, attack: 20, tier: 2, image: "enemy_troll.webp" },
+    { id: "basilisk", hp: 300, attack: 15, tier: 2, image: "Juvenile Basilisk.png" },
+    { id: "boggart", hp: 280, attack: 18, tier: 2, image: "Boggart.png" },
+    { id: "hippogriff", hp: 320, attack: 14, tier: 2, image: "Furious Hippogriff.png" },
+    { id: "skrewt", hp: 260, attack: 20, tier: 2, image: "Blast-Ended Skrewt.png" },
     // Tier 3 (nodes 7-8): high HP, high attack
     { id: "werewolf", hp: 400, attack: 22, tier: 3, image: "enemy_troll.webp" },
     { id: "dragon", hp: 450, attack: 25, tier: 3, image: "enemy_troll.webp" },
@@ -201,77 +201,70 @@ function generateRun() {
 }
 
 // --- MAP SCREEN ---
-function renderMap() {
-    const container = document.getElementById('map-nodes-container');
-    container.innerHTML = '';
 
-    // Update player status bar
-    document.getElementById('map-hp').innerText = `PV: ${state.player.hp}/${state.player.maxHp}`;
-    document.getElementById('map-gold').innerText = `Galleons: ${state.player.gold}`;
-    document.getElementById('map-blessings').innerText = `Artefacts: ${state.player.blessings.length}`;
+// Positions des nœuds sur le parchemin (en % de largeur/hauteur)
+// Chemin en S sinueux. Pour les colonnes à 2 choix, le 2e nœud a un offset.
+const MAP_NODE_POSITIONS = [
+    [{ x: 12, y: 78 }],                           // 0: Départ bas-gauche
+    [{ x: 24, y: 60 }, { x: 20, y: 42 }],         // 1: Choix (combat / dortoir)
+    [{ x: 38, y: 35 }],                            // 2: Shop centre
+    [{ x: 54, y: 22 }, { x: 50, y: 42 }],         // 3: Choix (combat / dortoir)
+    [{ x: 70, y: 18 }],                            // 4: Combat haut-droite
+    [{ x: 82, y: 35 }],                            // 5: Shop droite
+    [{ x: 74, y: 55 }, { x: 80, y: 70 }],         // 6: Choix (combat / dortoir)
+    [{ x: 58, y: 68 }],                            // 7: Combat centre-bas
+    [{ x: 42, y: 78 }],                            // 8: Shop bas
+    [{ x: 22, y: 20 }],                            // 9: Boss - haut-gauche, isolé
+];
 
-    state.run.columns.forEach((column, colIndex) => {
-        // Add connector before each column (except first)
-        if (colIndex > 0) {
-            const connector = document.createElement('div');
-            const prevCompleted = state.run.columns[colIndex - 1].nodes.every(n => n.status === 'completed') ||
-                state.run.columns[colIndex - 1].selectedNodeIndex !== null;
-            connector.className = `map-connector ${prevCompleted ? 'completed' : ''}`;
-            container.appendChild(connector);
-        }
+// Icônes SVG pour chaque type de nœud
+function getNodeSVG(type, status) {
+    const muted = status === 'upcoming' || status === 'completed';
+    const strokeColor = muted ? '#8b7355' : '#3a2e1a';
+    const fillColor = muted ? 'rgba(139,115,85,0.15)' : 'rgba(90,50,20,0.25)';
 
-        const colEl = document.createElement('div');
-        colEl.className = 'map-column';
-
-        column.nodes.forEach((node, nodeIndex) => {
-            const nodeEl = document.createElement('div');
-            nodeEl.className = `map-node ${node.status}`;
-
-            // Highlight selected node in current column
-            const isCurrent = colIndex === state.run.currentColumnIndex;
-            if (isCurrent && column.selectedNodeIndex === nodeIndex) {
-                nodeEl.classList.add('selected');
-            }
-
-            // Icon per type
-            let icon = '';
-            let typeClass = '';
-            if (node.type === NODE_TYPES.COMBAT) {
-                icon = '\u2694\uFE0F';
-                typeClass = 'combat';
-            } else if (node.type === NODE_TYPES.SHOP) {
-                icon = '\uD83C\uDFEA';
-                typeClass = 'shop';
-            } else if (node.type === NODE_TYPES.BOSS) {
-                icon = '\uD83D\uDC80';
-                typeClass = 'boss';
-            } else if (node.type === NODE_TYPES.DORTOIR) {
-                icon = '\uD83D\uDECF\uFE0F';
-                typeClass = 'dortoir';
-            }
-
-            nodeEl.innerHTML = `
-                <div class="map-node-icon ${typeClass}">${icon}</div>
-                <span class="map-node-label">${getNodeLabel(node)}</span>
-            `;
-
-            // Click handler for node selection (only in current column with choices)
-            if (isCurrent && column.nodes.length > 1 && node.status === 'current') {
-                nodeEl.style.cursor = 'pointer';
-                nodeEl.addEventListener('click', () => {
-                    column.selectedNodeIndex = nodeIndex;
-                    renderMap();
-                    updateMapNodeInfo();
-                });
-            }
-
-            colEl.appendChild(nodeEl);
-        });
-
-        container.appendChild(colEl);
-    });
-
-    updateMapNodeInfo();
+    if (type === NODE_TYPES.COMBAT) {
+        // Empreinte de griffe
+        return `<svg viewBox="0 0 52 52"><circle cx="26" cy="26" r="24" fill="${fillColor}" stroke="${strokeColor}" stroke-width="2"/>
+            <g fill="${strokeColor}" transform="translate(11,10) scale(0.6)">
+                <ellipse cx="15" cy="12" rx="4" ry="7" transform="rotate(-15,15,12)"/>
+                <ellipse cx="25" cy="8" rx="3.5" ry="7"/>
+                <ellipse cx="35" cy="12" rx="4" ry="7" transform="rotate(15,35,12)"/>
+                <ellipse cx="25" cy="30" rx="10" ry="13"/>
+            </g></svg>`;
+    }
+    if (type === NODE_TYPES.SHOP) {
+        // Bourse de pièces
+        return `<svg viewBox="0 0 52 52"><circle cx="26" cy="26" r="24" fill="${fillColor}" stroke="${strokeColor}" stroke-width="2"/>
+            <g fill="none" stroke="${strokeColor}" stroke-width="2" transform="translate(14,12)">
+                <path d="M6 8 Q12 -2 18 8" stroke-linecap="round"/>
+                <path d="M3 8 Q12 6 21 8 Q22 18 20 24 Q12 28 4 24 Q2 18 3 8Z" fill="${fillColor}"/>
+                <circle cx="12" cy="17" r="5" fill="${strokeColor}" opacity="0.3"/>
+                <text x="9.5" y="20.5" font-size="8" fill="${strokeColor}" font-family="Cinzel" font-weight="bold">G</text>
+            </g></svg>`;
+    }
+    if (type === NODE_TYPES.BOSS) {
+        // Crâne cornu (plus gros)
+        return `<svg viewBox="0 0 62 62"><circle cx="31" cy="31" r="29" fill="rgba(116,0,1,0.2)" stroke="#5c1a1a" stroke-width="2.5"/>
+            <g fill="${strokeColor}" transform="translate(14,10)">
+                <path d="M5 18 Q0 5 8 0 L12 8Z" opacity="0.7"/>
+                <path d="M29 18 Q34 5 26 0 L22 8Z" opacity="0.7"/>
+                <ellipse cx="17" cy="20" rx="13" ry="14" fill="${fillColor}" stroke="${strokeColor}" stroke-width="1.5"/>
+                <circle cx="12" cy="18" r="3.5" fill="${strokeColor}"/>
+                <circle cx="22" cy="18" r="3.5" fill="${strokeColor}"/>
+                <path d="M13 28 L15 25 L17 28 L19 25 L21 28" stroke="${strokeColor}" fill="none" stroke-width="1.5"/>
+            </g></svg>`;
+    }
+    if (type === NODE_TYPES.DORTOIR) {
+        // Tente / feu de camp
+        return `<svg viewBox="0 0 52 52"><circle cx="26" cy="26" r="24" fill="${fillColor}" stroke="${strokeColor}" stroke-width="2"/>
+            <g transform="translate(12,12)" fill="none" stroke="${strokeColor}" stroke-width="2">
+                <path d="M14 6 L2 28 L26 28 Z" fill="${fillColor}"/>
+                <path d="M14 28 L14 16" stroke-linecap="round"/>
+                <path d="M10 28 L14 20 L18 28" fill="${fillColor}" opacity="0.3"/>
+            </g></svg>`;
+    }
+    return '';
 }
 
 function getNodeLabel(node) {
@@ -282,13 +275,138 @@ function getNodeLabel(node) {
     return '';
 }
 
+function renderMap() {
+    const nodesLayer = document.getElementById('map-nodes-layer');
+    nodesLayer.innerHTML = '';
+
+    // Update stats
+    document.getElementById('map-hp').innerText = `${state.player.hp}/${state.player.maxHp}`;
+    document.getElementById('map-gold').innerText = state.player.gold;
+    document.getElementById('map-blessings').innerText = state.player.blessings.length;
+
+    // Collecter les positions réelles des nœuds sélectionnés pour le trail
+    const trailPoints = [];
+
+    state.run.columns.forEach((column, colIndex) => {
+        column.nodes.forEach((node, nodeIndex) => {
+            const pos = MAP_NODE_POSITIONS[colIndex][nodeIndex];
+            if (!pos) return;
+
+            const nodeEl = document.createElement('div');
+            nodeEl.className = `map-node ${node.status}`;
+            nodeEl.style.left = pos.x + '%';
+            nodeEl.style.top = pos.y + '%';
+
+            const isCurrent = colIndex === state.run.currentColumnIndex;
+            if (isCurrent && column.selectedNodeIndex === nodeIndex) {
+                nodeEl.classList.add('selected');
+            }
+
+            const isBoss = node.type === NODE_TYPES.BOSS;
+            const iconSize = isBoss ? 62 : 52;
+            nodeEl.innerHTML = `
+                <div class="map-node-icon" style="width:${iconSize}px;height:${iconSize}px">
+                    ${getNodeSVG(node.type, node.status)}
+                </div>
+                <span class="map-node-label">${getNodeLabel(node)}</span>
+            `;
+
+            // Click handler
+            if (isCurrent && column.nodes.length > 1 && node.status === 'current') {
+                nodeEl.style.cursor = 'pointer';
+                nodeEl.addEventListener('click', () => {
+                    column.selectedNodeIndex = nodeIndex;
+                    renderMap();
+                    updateMapNodeInfo();
+                });
+            } else if (isCurrent && column.nodes.length === 1) {
+                nodeEl.style.cursor = 'pointer';
+            }
+
+            nodesLayer.appendChild(nodeEl);
+        });
+
+        // Pour le trail : utiliser la position du nœud sélectionné ou du premier
+        const selIdx = column.selectedNodeIndex !== null ? column.selectedNodeIndex : 0;
+        const trailPos = MAP_NODE_POSITIONS[colIndex][selIdx] || MAP_NODE_POSITIONS[colIndex][0];
+        trailPoints.push(trailPos);
+    });
+
+    // Dessiner le SVG trail
+    drawMapTrail(trailPoints);
+
+    // Positionner le jeton joueur
+    positionPlayerToken();
+
+    updateMapNodeInfo();
+}
+
+function drawMapTrail(points) {
+    if (points.length < 2) return;
+
+    // Convertir les % en coordonnées SVG (viewBox 1000x700)
+    const svgPoints = points.map(p => ({ x: p.x * 10, y: p.y * 7 }));
+
+    // Construire un chemin courbe (quadratic bezier entre chaque paire)
+    let pathD = `M ${svgPoints[0].x} ${svgPoints[0].y}`;
+    for (let i = 1; i < svgPoints.length; i++) {
+        const prev = svgPoints[i - 1];
+        const curr = svgPoints[i];
+        const cpX = (prev.x + curr.x) / 2;
+        const cpY = (prev.y + curr.y) / 2;
+        // On utilise le point médian comme point de contrôle avec un léger offset
+        pathD += ` Q ${prev.x + (curr.x - prev.x) * 0.5} ${prev.y} ${cpX} ${cpY}`;
+    }
+    // Dernière ligne vers le dernier point
+    const last = svgPoints[svgPoints.length - 1];
+    const beforeLast = svgPoints[svgPoints.length - 2];
+    pathD += ` Q ${(beforeLast.x + last.x) / 2} ${last.y} ${last.x} ${last.y}`;
+
+    // Trail de fond (tout le chemin)
+    document.getElementById('map-trail-bg').setAttribute('d', pathD);
+
+    // Trail de progression (jusqu'au nœud courant)
+    const progressPoints = svgPoints.slice(0, state.run.currentColumnIndex + 1);
+    if (progressPoints.length >= 2) {
+        let progD = `M ${progressPoints[0].x} ${progressPoints[0].y}`;
+        for (let i = 1; i < progressPoints.length; i++) {
+            const prev = progressPoints[i - 1];
+            const curr = progressPoints[i];
+            const cpX = (prev.x + curr.x) / 2;
+            const cpY = (prev.y + curr.y) / 2;
+            progD += ` Q ${prev.x + (curr.x - prev.x) * 0.5} ${prev.y} ${cpX} ${cpY}`;
+        }
+        if (progressPoints.length >= 2) {
+            const pLast = progressPoints[progressPoints.length - 1];
+            const pBefore = progressPoints[progressPoints.length - 2];
+            progD += ` Q ${(pBefore.x + pLast.x) / 2} ${pLast.y} ${pLast.x} ${pLast.y}`;
+        }
+        document.getElementById('map-trail-progress').setAttribute('d', progD);
+    } else {
+        document.getElementById('map-trail-progress').setAttribute('d', '');
+    }
+}
+
+function positionPlayerToken() {
+    const token = document.getElementById('map-player-token');
+    const colIdx = state.run.currentColumnIndex;
+    const column = state.run.columns[colIdx];
+    if (!column) { token.style.display = 'none'; return; }
+
+    const selIdx = column.selectedNodeIndex !== null ? column.selectedNodeIndex : 0;
+    const pos = MAP_NODE_POSITIONS[colIdx][selIdx] || MAP_NODE_POSITIONS[colIdx][0];
+
+    token.style.display = 'block';
+    token.style.left = pos.x + '%';
+    token.style.top = (pos.y - 7) + '%'; // Légèrement au-dessus du nœud
+}
+
 function updateMapNodeInfo() {
     const column = state.run.columns[state.run.currentColumnIndex];
     const nameEl = document.getElementById('map-node-name');
     const descEl = document.getElementById('map-node-desc');
     const btnEnter = document.getElementById('btn-enter-node');
 
-    // If column has multiple nodes, show selected or prompt to choose
     let selectedNode = null;
     if (column.nodes.length === 1) {
         column.selectedNodeIndex = 0;
@@ -330,7 +448,6 @@ function showMap() {
     if (column && column.nodes.length === 1) {
         column.selectedNodeIndex = 0;
         saveGame();
-        // Directly enter the only node (no map display)
         enterCurrentNode();
         return;
     }
@@ -341,9 +458,15 @@ function showMap() {
     document.getElementById('dortoir-screen').style.display = 'none';
     document.getElementById('main-game-bg').style.display = 'block';
     renderMap();
-    gsap.fromTo('#map-screen', { opacity: 0 }, { opacity: 1, duration: 0.6 });
 
-    // Auto-save on map
+    // Animation d'entrée du parchemin
+    const parchment = document.getElementById('map-parchment');
+    gsap.fromTo('#map-screen', { opacity: 0 }, { opacity: 1, duration: 0.4 });
+    gsap.fromTo(parchment,
+        { scale: 0.9, opacity: 0, y: 30 },
+        { scale: 1, opacity: 1, y: 0, duration: 0.6, ease: "back.out(1.4)", delay: 0.1 }
+    );
+
     saveGame();
 }
 
