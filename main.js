@@ -1416,6 +1416,67 @@ async function victorySequence() {
     state.isAnimating = false;
 }
 
+// --- PARTICULES SHOP DORÉES ---
+let shopParticleInterval = null;
+
+function spawnShopParticle() {
+    const container = document.getElementById('shop-particles');
+    if (!container) return;
+
+    const particle = document.createElement('div');
+    particle.className = 'shop-particle';
+
+    const size = 2 + Math.random() * 5;
+    particle.style.width = size + 'px';
+    particle.style.height = size + 'px';
+    particle.style.left = Math.random() * 100 + '%';
+    particle.style.bottom = '-5%';
+    particle.style.boxShadow = `0 0 ${size * 2}px rgba(199, 161, 59, 0.5), 0 0 ${size * 4}px rgba(199, 161, 59, 0.2)`;
+
+    container.appendChild(particle);
+
+    const drift = -60 + Math.random() * 120;
+    gsap.fromTo(particle,
+        { opacity: 0, scale: 0 },
+        {
+            opacity: 0.6 + Math.random() * 0.4,
+            scale: 1,
+            duration: 0.5,
+            onComplete: () => {
+                gsap.to(particle, {
+                    y: -(window.innerHeight * (0.7 + Math.random() * 0.4)),
+                    x: drift,
+                    opacity: 0,
+                    scale: 0.2,
+                    duration: 4 + Math.random() * 4,
+                    ease: "power1.out",
+                    onComplete: () => particle.remove()
+                });
+            }
+        }
+    );
+}
+
+function startShopParticles() {
+    stopShopParticles();
+    for (let i = 0; i < 8; i++) {
+        setTimeout(() => spawnShopParticle(), i * 150);
+    }
+    shopParticleInterval = setInterval(() => {
+        spawnShopParticle();
+    }, 350);
+}
+
+function stopShopParticles() {
+    if (shopParticleInterval) {
+        clearInterval(shopParticleInterval);
+        shopParticleInterval = null;
+    }
+    const container = document.getElementById('shop-particles');
+    if (container) container.innerHTML = '';
+}
+
+// --- SHOP GENERATION ---
 function generateShop() {
     const container = document.getElementById('blessings-container');
     container.innerHTML = '';
@@ -1430,8 +1491,67 @@ function generateShop() {
         card.innerHTML = `<div class="blessing-name">${name}</div><div class="blessing-desc">${desc}</div><div class="blessing-cost">${b.cost} 🪙</div><button class="buy-btn" ${isOwned || state.player.gold < b.cost ? 'disabled' : ''}>${isOwned ? t('ui.owned') : t('ui.buy')}</button>`;
         card.querySelector('.buy-btn').addEventListener('click', (e) => buyBlessing(b, e.target));
         container.appendChild(card);
+
+        // Particules dorées au hover
+        card.addEventListener('mouseenter', () => {
+            for (let i = 0; i < 5; i++) {
+                setTimeout(() => {
+                    const spark = document.createElement('div');
+                    spark.className = 'shop-particle';
+                    const s = 2 + Math.random() * 3;
+                    spark.style.width = s + 'px';
+                    spark.style.height = s + 'px';
+                    spark.style.position = 'absolute';
+                    spark.style.left = Math.random() * 100 + '%';
+                    spark.style.top = Math.random() * 100 + '%';
+                    spark.style.boxShadow = `0 0 ${s * 2}px rgba(199, 161, 59, 0.6)`;
+                    card.appendChild(spark);
+                    gsap.fromTo(spark,
+                        { opacity: 0, scale: 0 },
+                        {
+                            opacity: 1, scale: 1.5, duration: 0.3,
+                            onComplete: () => {
+                                gsap.to(spark, {
+                                    y: -(20 + Math.random() * 30),
+                                    x: -15 + Math.random() * 30,
+                                    opacity: 0,
+                                    duration: 0.6 + Math.random() * 0.4,
+                                    onComplete: () => spark.remove()
+                                });
+                            }
+                        }
+                    );
+                }, i * 60);
+            }
+        });
     });
-    gsap.from(".blessing-card", { y: 50, opacity: 0, stagger: 0.1, duration: 0.5 });
+
+    // Titre : entrée simple
+    gsap.fromTo("#sanctuary-title",
+        { y: -20, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.8, ease: "power2.out" }
+    );
+
+    // Gold display : entrée fade-in
+    gsap.fromTo("#sanctuary-gold-display",
+        { opacity: 0 },
+        { opacity: 1, duration: 0.8, delay: 0.3, ease: "power2.out" }
+    );
+
+    // Cartes : entrée simple
+    gsap.fromTo(".blessing-card",
+        { y: 30, opacity: 0 },
+        { y: 0, opacity: 1, stagger: 0.1, duration: 0.6, delay: 0.5, ease: "power2.out" }
+    );
+
+    // Bouton continuer : entrée en dernier
+    gsap.fromTo("#btn-continue",
+        { y: 30, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.6, delay: 1.2, ease: "power2.out" }
+    );
+
+    // Démarrer les particules
+    // startShopParticles();
 }
 
 function buyBlessing(blessing, btn) {
@@ -1439,15 +1559,52 @@ function buyBlessing(blessing, btn) {
         state.player.gold -= blessing.cost;
         state.player.blessings.push(blessing.id);
         document.getElementById('sanctuary-gold-value').innerText = state.player.gold;
-        btn.innerText = t('ui.owned'); btn.disabled = true;
+        btn.innerText = t('ui.owned');
+        btn.disabled = true;
         if (blessing.id === "grace") state.player.maxDiscards += 1;
-        gsap.fromTo("#sanctuary-gold-value", { color: "#f00" }, { color: "#c7a13b", duration: 0.5 });
+
+        // Flash doré sur la carte
+        const card = btn.closest('.blessing-card');
+        const flash = document.createElement('div');
+        flash.style.cssText = 'position:absolute;inset:0;border-radius:12px;background:radial-gradient(circle,rgba(245,230,163,0.4),transparent);pointer-events:none;z-index:10;';
+        card.appendChild(flash);
+        gsap.fromTo(flash, { opacity: 1 }, { opacity: 0, duration: 0.8, onComplete: () => flash.remove() });
+
+        // Scale bounce carte
+        gsap.fromTo(card, { scale: 1.08 }, { scale: 1, duration: 0.5, ease: "elastic.out(1, 0.4)" });
+
+        // Gold counter feedback
+        const goldEl = document.getElementById('sanctuary-gold-value');
+        gsap.fromTo(goldEl,
+            { color: "#ff4444", scale: 1.3 },
+            { color: "#c7a13b", scale: 1, duration: 0.6, ease: "back.out(2)" }
+        );
+
+        // Burst de particules en cercle depuis le bouton
+        for (let i = 0; i < 8; i++) {
+            const spark = document.createElement('div');
+            spark.className = 'shop-particle';
+            spark.style.cssText = 'position:absolute;width:3px;height:3px;left:50%;top:50%;z-index:20;';
+            spark.style.boxShadow = '0 0 6px rgba(199,161,59,0.8)';
+            card.appendChild(spark);
+            const angle = (Math.PI * 2 / 8) * i;
+            const dist = 40 + Math.random() * 40;
+            gsap.to(spark, {
+                x: Math.cos(angle) * dist,
+                y: Math.sin(angle) * dist,
+                opacity: 0,
+                duration: 0.6 + Math.random() * 0.3,
+                ease: "power2.out",
+                onComplete: () => spark.remove()
+            });
+        }
     }
 }
 
 async function continueFromShop() {
     if (state.isAnimating) return;
     state.isAnimating = true;
+    stopShopParticles();
     const tl = gsap.timeline();
     tl.to("#sanctuary-screen", { opacity: 0, duration: 0.6, ease: "power2.in" });
     tl.set("#sanctuary-screen", { display: "none" });

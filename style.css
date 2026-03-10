@@ -1006,6 +1006,12 @@ button:disabled {
 }
 
 /* --- DIAGON ALLEY --- */
+@property --card-border-angle {
+    syntax: '<angle>';
+    initial-value: 0deg;
+    inherits: false;
+}
+
 #sanctuary-screen {
     position: fixed;
     inset: 0;
@@ -1018,48 +1024,200 @@ button:disabled {
     align-items: center;
     z-index: 1500;
     padding: 40px;
+    overflow: hidden;
 }
 
+/* Vignette atmosphérique */
+#sanctuary-screen::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at center,
+            transparent 35%,
+            rgba(0, 0, 0, 0.4) 65%,
+            rgba(0, 0, 0, 0.7) 100%);
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* Z-index pour passer au-dessus de la vignette */
+#sanctuary-title,
+#sanctuary-gold-display,
+#blessings-container,
+#btn-continue {
+    position: relative;
+    z-index: 1;
+}
+
+/* Conteneur particules */
+#shop-particles {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    overflow: hidden;
+}
+
+.shop-particle {
+    position: absolute;
+    border-radius: 50%;
+    background: radial-gradient(circle,
+            rgba(245, 230, 163, 1) 0%,
+            rgba(199, 161, 59, 0.8) 40%,
+            rgba(199, 161, 59, 0) 100%);
+    pointer-events: none;
+}
+
+/* Titre avec glow pulsant */
 #sanctuary-title {
     font-family: 'Cinzel', serif;
     font-size: 4rem;
     color: var(--accent-gold);
     margin-bottom: 10px;
     letter-spacing: 15px;
-    text-shadow: 0 0 30px rgba(197, 160, 89, 0.4);
 }
 
+@keyframes sanctuary-title-glow {
+
+    0%,
+    100% {
+        text-shadow:
+            0 0 30px rgba(197, 160, 89, 0.4),
+            0 0 60px rgba(197, 160, 89, 0.1);
+    }
+
+    50% {
+        text-shadow:
+            0 0 40px rgba(197, 160, 89, 0.7),
+            0 0 80px rgba(197, 160, 89, 0.3),
+            0 0 120px rgba(197, 160, 89, 0.1);
+    }
+}
+
+/* Gold display avec shimmer */
 #sanctuary-gold-display {
     font-family: 'Metamorphous', cursive;
     font-size: 1.5rem;
     color: var(--accent-gold);
     margin-bottom: 50px;
+    position: relative;
+    overflow: hidden;
 }
 
+#sanctuary-gold-display::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 50%;
+    height: 100%;
+    background: linear-gradient(90deg,
+            transparent,
+            rgba(245, 230, 163, 0.3),
+            transparent);
+    transform: skewX(-20deg);
+    pointer-events: none;
+}
+
+@keyframes gold-shimmer {
+
+    0%,
+    60% {
+        left: -100%;
+    }
+
+    100% {
+        left: 250%;
+    }
+}
+
+/* Conteneur bénédictions avec lueur ambiante */
 #blessings-container {
     display: flex;
     gap: 30px;
     margin-bottom: 60px;
     perspective: 1000px;
+    position: relative;
 }
 
+#blessings-container::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 120%;
+    height: 140%;
+    background: radial-gradient(ellipse at center,
+            rgba(199, 161, 59, 0.06) 0%,
+            transparent 70%);
+    pointer-events: none;
+    z-index: -1;
+}
+
+/* Cartes de bénédiction — bordure animée + glassmorphism */
 .blessing-card {
     width: 250px;
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid var(--accent-gold);
     padding: 25px;
     border-radius: 12px;
     text-align: center;
-    transition: transform 0.3s ease, background 0.3s ease;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
     height: 350px;
+    position: relative;
+    z-index: 1;
+    border: none;
+    background: transparent;
+    transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    overflow: visible;
+}
+
+/* Bordure conic-gradient rotative */
+.blessing-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 12px;
+    padding: 1.5px;
+    background: conic-gradient(from var(--card-border-angle, 0deg),
+            transparent 0%,
+            rgba(245, 230, 163, 0.8) 10%,
+            var(--accent-gold) 20%,
+            transparent 40%,
+            transparent 60%,
+            rgba(199, 161, 59, 0.4) 75%,
+            transparent 90%);
+    -webkit-mask:
+        linear-gradient(#fff 0 0) content-box,
+        linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+    z-index: -1;
+}
+
+/* Glassmorphism background */
+.blessing-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 12px;
+    background: rgba(10, 8, 4, 0.6);
+    backdrop-filter: blur(12px) saturate(120%);
+    -webkit-backdrop-filter: blur(12px) saturate(120%);
+    border: 1px solid rgba(199, 161, 59, 0.15);
+    z-index: -1;
+    transition: background 0.3s, border-color 0.3s;
 }
 
 .blessing-card:hover {
-    transform: translateY(-10px) rotateY(5deg);
-    background: rgba(197, 160, 89, 0.08);
+    transform: translateY(-12px) scale(1.03);
+}
+
+.blessing-card:hover::after {
+    background: rgba(197, 160, 89, 0.1);
+    border-color: rgba(199, 161, 59, 0.3);
 }
 
 .blessing-name {
@@ -1084,6 +1242,7 @@ button:disabled {
     margin-bottom: 15px;
 }
 
+/* Bouton acheter — glow hover */
 .buy-btn {
     background: transparent;
     border: 1px solid var(--accent-gold);
@@ -1091,12 +1250,23 @@ button:disabled {
     padding: 10px;
     cursor: pointer;
     font-family: 'Cinzel', serif;
-    transition: all 0.2s ease;
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    position: relative;
+    overflow: hidden;
+    border-radius: 4px;
+    text-shadow: 0 0 10px rgba(199, 161, 59, 0.3);
 }
 
 .buy-btn:hover:not(:disabled) {
-    background: var(--accent-gold);
-    color: black;
+    background: linear-gradient(135deg, rgba(199, 161, 59, 0.2), rgba(245, 230, 163, 0.1));
+    border-color: rgba(245, 230, 163, 0.9);
+    color: rgba(245, 230, 163, 1);
+    box-shadow:
+        0 0 15px rgba(199, 161, 59, 0.3),
+        0 0 30px rgba(199, 161, 59, 0.1),
+        inset 0 0 15px rgba(199, 161, 59, 0.1);
+    transform: scale(1.05);
+    text-shadow: 0 0 15px rgba(245, 230, 163, 0.5);
 }
 
 .buy-btn:disabled {
@@ -1104,11 +1274,30 @@ button:disabled {
     border-color: #555;
     color: #555;
     cursor: default;
+    text-shadow: none;
 }
 
+/* Bouton continuer — pulse glow */
 #btn-continue {
     margin-top: 20px;
     padding: 15px 50px;
+}
+
+@keyframes continue-btn-pulse {
+
+    0%,
+    100% {
+        box-shadow:
+            0 4px 0 #8d7340,
+            0 0 20px rgba(199, 161, 59, 0.2);
+    }
+
+    50% {
+        box-shadow:
+            0 4px 0 #8d7340,
+            0 0 30px rgba(199, 161, 59, 0.4),
+            0 0 60px rgba(199, 161, 59, 0.15);
+    }
 }
 
 @media (max-width: 900px) {
