@@ -1758,6 +1758,8 @@ button:disabled {
     transition: box-shadow 0.3s ease, border-color 0.3s ease;
 }
 
+/* --- BRÛLURE DES CARTES HORS-COMBO (animé via GSAP) --- */
+
 /* --- EFFETS DE COMBAT --- */
 #boss-card.enemy-recoil {
     animation: monsterHit 0.6s ease-out;

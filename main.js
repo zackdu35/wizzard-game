@@ -1159,6 +1159,13 @@ function updateUI() {
 
 function updateComboDisplay() {
     const el = document.getElementById('combo-name');
+    const handContainer = document.getElementById('hand-container');
+
+    // Nettoyer les indicateurs visuels précédents
+    handContainer.querySelectorAll('.card-wrapper').forEach(w => {
+        // noop — plus de will-burn
+    });
+
     if (state.selectedIndices.length === 0) { el.innerText = "—"; return; }
     const activeCards = state.selectedIndices.map(i => state.hand[i]).filter(c => c);
 
@@ -1182,6 +1189,8 @@ function updateComboDisplay() {
         <div id="combo-damage-value" style="font-size: 4.5rem; color: #fff; font-weight: bold; line-height: 1; text-shadow: 0 0 15px rgba(255,255,255,0.4);">${comboOnlyDamage}</div>
         <div style="font-size: 1.2rem; color: #fff; opacity: 0.9; text-transform: uppercase; letter-spacing: 4px; font-family: 'Cinzel', serif; margin-top: 5px;">${res.comboName}</div>
     `;
+
+    // Les cartes hors-combo ne sont plus grisées à l'avance — la brûlure est une surprise
 }
 
 async function executeTurn() {
@@ -1203,8 +1212,9 @@ async function executeTurn() {
     }
     const result = evaluateHand(cardsForEval, state.player.blessings);
 
-    // Critical hit check
-    const hasCrit = activeCards.some(card => state.criticalCardIds.has(card.id));
+    // Critical hit check — seulement si la carte critique fait partie du combo
+    const comboCards = activeCards.filter(card => result.comboCardIds.has(card.id));
+    const hasCrit = comboCards.some(card => state.criticalCardIds.has(card.id));
     const finalDamage = hasCrit ? Math.floor(result.damage * (1 + state.critBonus)) : result.damage;
 
     // Track damage stat
@@ -1216,20 +1226,31 @@ async function executeTurn() {
     // Dégâts immédiats visuels
     const targetHP = Math.max(0, state.enemy.hp - finalDamage);
 
-    // --- PHASE 0: Card Value Reveal (style Main du Démon) ---
+    // --- PHASE 0: Séparer cartes combo et cartes à brûler ---
+    const comboCardIds = result.comboCardIds;
+    const comboWrappers = [];
+    const burnWrappers = [];
+    selectedWrappers.forEach((w, i) => {
+        const card = activeCards[i];
+        if (card && comboCardIds.has(card.id)) comboWrappers.push(w);
+        else burnWrappers.push(w);
+    });
+
     const comboOnlyDamage = result.baseCombo;
 
-    // Scoring glow on selected cards
-    selectedWrappers.forEach(w => {
+    // Scoring glow sur les cartes combo uniquement
+    comboWrappers.forEach(w => {
         const c = w.querySelector('.card-container');
         if (c) c.classList.add('card-scoring');
     });
 
-    // Create "+X" value labels above each card
+    // Create "+X" value labels sur les cartes COMBO uniquement
     const valueLabels = [];
     cardsForEval.forEach((card, i) => {
         const wrapper = selectedWrappers[i];
         if (!wrapper || card.baseDamage <= 0) return;
+        // Seulement les cartes combo ont un label "+X"
+        if (!comboCardIds.has(card.id)) return;
         const label = document.createElement('div');
         label.className = 'card-value-popup';
         label.innerText = `+${card.baseDamage}`;
@@ -1238,13 +1259,11 @@ async function executeTurn() {
     });
 
     if (valueLabels.length > 0) {
-        // Animate "+X" labels with stagger
         await gsap.fromTo(valueLabels,
             { y: 10, opacity: 0, scale: 0.3 },
             { y: -15, opacity: 1, scale: 1, duration: 0.5, stagger: 0.12, ease: "back.out(2.5)" }
         );
 
-        // Animate score counter from combo-only → total damage
         const damageEl = document.getElementById('combo-damage-value');
         if (damageEl) {
             const obj = { val: comboOnlyDamage };
@@ -1255,12 +1274,52 @@ async function executeTurn() {
                 ease: "power2.out",
                 onUpdate: () => { damageEl.innerText = Math.floor(obj.val); }
             });
-            // Scale pulse on final value
             gsap.fromTo(damageEl, { scale: 1.3 }, { scale: 1, duration: 0.3, ease: "back.out(2)" });
         }
 
-        // Brief pause to appreciate the total
         await new Promise(r => setTimeout(r, 400));
+    }
+
+    // --- PHASE 0.5: Brûler les cartes hors-combo ---
+    if (burnWrappers.length > 0) {
+        const burnTl = gsap.timeline();
+        const burnContainers = burnWrappers.map(w => w.querySelector('.card-container')).filter(Boolean);
+
+        // Phase 1: Flash lumineux — la carte s'embrase
+        burnTl.to(burnContainers, {
+            filter: 'brightness(2.5) sepia(1) saturate(4)',
+            boxShadow: '0 0 25px 10px rgba(255, 100, 20, 0.7), 0 0 50px 20px rgba(255, 60, 10, 0.4)',
+            borderColor: '#ff6633',
+            scale: 1.05,
+            duration: 0.3,
+            stagger: 0.08,
+            ease: "power2.out"
+        });
+
+        // Phase 2: Consume — la carte se consume et disparaît
+        burnTl.to(burnContainers, {
+            filter: 'brightness(0) saturate(0)',
+            boxShadow: '0 0 0px 0px rgba(255, 100, 20, 0)',
+            scale: 0.7,
+            duration: 0.4,
+            stagger: 0.08,
+            ease: "power2.in"
+        });
+        burnTl.to(burnWrappers, {
+            opacity: 0,
+            duration: 0.3,
+            stagger: 0.08,
+            ease: "power1.in"
+        }, "-=0.3");
+
+        await burnTl;
+
+        // Cacher les cartes brûlées SANS changer le layout (visibility au lieu de display)
+        burnWrappers.forEach(w => {
+            w.style.visibility = 'hidden';
+            w.style.pointerEvents = 'none';
+        });
+        await new Promise(r => setTimeout(r, 150));
     }
 
     // --- PHASE 0b: Critical bonus animation ---
@@ -1278,7 +1337,6 @@ async function executeTurn() {
                 { y: -60, opacity: 1, scale: 1.2, duration: 0.5, ease: "back.out(3)" }
             );
 
-            // Animate counter from normal → crit damage
             const damageEl = document.getElementById('combo-damage-value');
             if (damageEl) {
                 gsap.to(damageEl, { color: '#a29bfe', textShadow: '0 0 20px rgba(120,80,255,0.6), 0 0 40px rgba(120,80,255,0.3)', duration: 0.3 });
@@ -1296,13 +1354,13 @@ async function executeTurn() {
         }
     }
 
-    // Timeline Attaque Joueur
+    // Timeline Attaque Joueur — seules les cartes COMBO volent vers l'ennemi
     const tl1 = gsap.timeline();
-    // 1. Soulèvement des cartes
-    tl1.to(selectedWrappers, { y: -150, x: (i) => (i - (selectedWrappers.length - 1) / 2) * 20, scale: 1.3, duration: 0.6, stagger: 0.05, ease: "power3.out" });
+    // 1. Soulèvement des cartes combo
+    tl1.to(comboWrappers, { y: -150, x: (i) => (i - (comboWrappers.length - 1) / 2) * 20, scale: 1.3, duration: 0.6, stagger: 0.05, ease: "power3.out" });
 
     // 2. Vol vers l'ennemi (Lancement)
-    tl1.to(selectedWrappers, { y: -500, opacity: 0, duration: 0.4, stagger: 0.03, ease: "power4.in" });
+    tl1.to(comboWrappers, { y: -500, opacity: 0, duration: 0.4, stagger: 0.03, ease: "power4.in" });
 
     // 3. Impact (Dégâts visuels synchronisés avec le vol)
     tl1.add(() => {

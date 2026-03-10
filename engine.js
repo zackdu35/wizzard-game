@@ -63,15 +63,12 @@ function shuffle(deck) {
  * @returns {Object} { comboName: string, damage: number }
  */
 function evaluateHand(selectedCards, ownedBlessings = []) {
-    if (selectedCards.length === 0) return { comboName: t('combos.silence'), damage: 0 };
+    if (selectedCards.length === 0) return { comboName: t('combos.silence'), damage: 0, comboCardIds: new Set() };
 
     // Tri des cartes par rang pour faciliter les détections
     const sorted = [...selectedCards].sort((a, b) => a.rank - b.rank);
     const ranks = sorted.map(c => c.rank);
     const suits = sorted.map(c => c.suit);
-
-    // Calcul de la somme des dégâts de base des cartes individuelles
-    const cardsSum = selectedCards.reduce((acc, card) => acc + card.baseDamage, 0);
 
     // Initialisation des variables de détection
     const counts = {};
@@ -83,76 +80,86 @@ function evaluateHand(selectedCards, ownedBlessings = []) {
     // Détection de suite (5 cartes consécutives)
     let isStraight = false;
     if (selectedCards.length === 5) {
-        // Cas classique
         if (ranks[4] - ranks[0] === 4 && new Set(ranks).size === 5) {
             isStraight = true;
         }
-        // Cas de l'As (14) utilisé comme 1 (non demandé spécifiquement mais bonne pratique)
-        // Note: Ici l'As est 14, donc la suite A-2-3-4-5 serait [2,3,4,5,14]
         if (!isStraight && ranks[0] === 2 && ranks[1] === 3 && ranks[2] === 4 && ranks[3] === 5 && ranks[4] === 14) {
             isStraight = true;
         }
     }
 
-    // Définition des scores de base et multiplicateurs (Valeurs équilibrées type Roguelike)
-    // Définition des scores de base et multiplicateurs
     let comboName = "Incantation";
     let baseCombo = 10;
+    let comboCardIds = new Set();
 
     // --- LOGIQUE DE DÉTECTION (du plus fort au plus faible) ---
 
-    // 1. Quinte Flush Royale
+    // 1. Quinte Flush Royale — toutes les 5 cartes
     if (isFlush && isStraight && ranks[0] === 10) {
         comboName = "La Main du Sorcier";
         baseCombo = 2000;
+        comboCardIds = new Set(selectedCards.map(c => c.id));
     }
-    // 2. Quinte Flush
+    // 2. Quinte Flush — toutes les 5 cartes
     else if (isFlush && isStraight) {
         comboName = "Quinte Ensorcelée";
         baseCombo = 600;
+        comboCardIds = new Set(selectedCards.map(c => c.id));
     }
-    // 3. Carré
+    // 3. Carré — les 4 cartes du même rang
     else if (freq[0] === 4) {
         comboName = "Quatre Maisons";
         baseCombo = 400;
+        const quadRank = +Object.keys(counts).find(r => counts[r] === 4);
+        comboCardIds = new Set(selectedCards.filter(c => c.rank === quadRank).map(c => c.id));
     }
-    // 4. Full House
+    // 4. Full House — toutes les 5 cartes (3+2)
     else if (freq[0] === 3 && freq[1] === 2) {
         comboName = "Convocation Complète";
         baseCombo = 175;
+        comboCardIds = new Set(selectedCards.map(c => c.id));
     }
-    // 5. Couleur
+    // 5. Couleur — toutes les 5 cartes
     else if (isFlush) {
         comboName = "Harmonie de Maison";
         baseCombo = 125;
-        // ARTEFACT : Potion Polyjuice (+30 dégâts de base pour Harmonie de Maison)
         if (ownedBlessings.includes("eau_vive")) {
             baseCombo += 30;
         }
+        comboCardIds = new Set(selectedCards.map(c => c.id));
     }
-    // 6. Suite
+    // 6. Suite — toutes les 5 cartes
     else if (isStraight) {
         comboName = "Séquence Enchantée";
         baseCombo = 100;
+        comboCardIds = new Set(selectedCards.map(c => c.id));
     }
-    // 7. Brelan
+    // 7. Brelan — les 3 cartes du même rang
     else if (freq[0] === 3) {
         comboName = "Trinité Magique";
         baseCombo = 80;
+        const tripleRank = +Object.keys(counts).find(r => counts[r] === 3);
+        comboCardIds = new Set(selectedCards.filter(c => c.rank === tripleRank).map(c => c.id));
     }
-    // 8. Double Paire
+    // 8. Double Paire — les 4 cartes des 2 paires
     else if (freq[0] === 2 && freq[1] === 2) {
         comboName = "Double Sortilège";
         baseCombo = 40;
+        const pairRanks = Object.keys(counts).filter(r => counts[r] === 2).map(Number);
+        comboCardIds = new Set(selectedCards.filter(c => pairRanks.includes(c.rank)).map(c => c.id));
     }
-    // 9. Paire
+    // 9. Paire — les 2 cartes de la paire
     else if (freq[0] === 2) {
         comboName = "Duo Enchanté";
         baseCombo = 20;
+        const pairRank = +Object.keys(counts).find(r => counts[r] === 2);
+        comboCardIds = new Set(selectedCards.filter(c => c.rank === pairRank).map(c => c.id));
     }
-    // 10. Carte Haute (Incantation)
+    // 10. Carte Haute — seulement la carte la plus haute
     else {
         comboName = "Incantation";
+        const highestCard = sorted[sorted.length - 1];
+        comboCardIds = new Set([highestCard.id]);
     }
 
     // --- MAP NAMES TO TRANSLATIONS ---
@@ -173,13 +180,16 @@ function evaluateHand(selectedCards, ownedBlessings = []) {
         comboName = t(`combos.${comboKeys[comboName]}`);
     }
 
-    // Formule: damage = Base du combo + Somme des cartes
+    // Seules les cartes du combo comptent pour les dégâts
+    const comboCardsOnly = selectedCards.filter(c => comboCardIds.has(c.id));
+    const cardsSum = comboCardsOnly.reduce((acc, card) => acc + card.baseDamage, 0);
     const totalDamage = cardsSum + baseCombo;
 
     return {
         comboName: comboName,
         damage: totalDamage,
         baseCombo: baseCombo,
-        cardsSum: cardsSum
+        cardsSum: cardsSum,
+        comboCardIds: comboCardIds
     };
 }
