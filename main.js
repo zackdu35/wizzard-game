@@ -1463,6 +1463,181 @@ async function executeTurn() {
     updateUI();
 }
 
+// --- EXPLOSION CARTE BOIS ENNEMI ---
+async function animateBossExplosion() {
+    const bossCard = document.getElementById('boss-card');
+    if (!bossCard) return;
+
+    const rect = bossCard.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+
+    // Créer le conteneur d'explosion (plein écran, sur le body pour éviter les transforms)
+    const explosionContainer = document.createElement('div');
+    explosionContainer.className = 'explosion-container';
+    document.body.appendChild(explosionContainer);
+
+    // --- Phase 1: Tremblement + fissures ---
+    const tl = gsap.timeline();
+
+    // Tremblement intensif du boss
+    tl.to(bossCard, {
+        x: 8, duration: 0.04, repeat: 15, yoyo: true,
+        ease: "none",
+        onComplete: () => gsap.set(bossCard, { x: 0 })
+    });
+
+    // Flash blanc d'énergie
+    tl.to(bossCard, {
+        filter: 'brightness(3) saturate(0)',
+        duration: 0.15,
+        ease: "power2.in"
+    }, "-=0.3");
+
+    await tl;
+
+    // --- Phase 2: Cacher le boss et spawner les fragments ---
+    gsap.set(bossCard, { visibility: 'hidden', filter: 'none' });
+
+    // Créer les fragments de bois
+    const FRAGMENT_COUNT = 24;
+    const SPLINTER_COUNT = 40;
+    const fragments = [];
+
+    // Couleurs bois
+    const woodColors = [
+        '#8B6914', '#A0522D', '#6B4226', '#8B7355',
+        '#DEB887', '#D2B48C', '#C4A35A', '#5C4033',
+        '#3E2723', '#4E3524', '#7B5B3A', '#9C7A3C'
+    ];
+
+    // Fragments principaux (morceaux de la carte)
+    for (let i = 0; i < FRAGMENT_COUNT; i++) {
+        const frag = document.createElement('div');
+        frag.className = 'wood-fragment';
+
+        const w = 20 + Math.random() * 60;
+        const h = 15 + Math.random() * 50;
+        const color = woodColors[Math.floor(Math.random() * woodColors.length)];
+        const colorDark = woodColors[Math.floor(Math.random() * woodColors.length)];
+
+        // Position initiale = dans la zone du boss
+        const startX = rect.left + Math.random() * rect.width;
+        const startY = rect.top + Math.random() * rect.height;
+
+        frag.style.cssText = `
+            width: ${w}px; height: ${h}px;
+            left: ${startX}px; top: ${startY}px;
+            background: linear-gradient(${Math.random() * 360}deg, ${color}, ${colorDark});
+            clip-path: polygon(
+                ${10 + Math.random() * 20}% ${Math.random() * 15}%,
+                ${60 + Math.random() * 40}% ${Math.random() * 20}%,
+                ${80 + Math.random() * 20}% ${40 + Math.random() * 30}%,
+                ${50 + Math.random() * 50}% ${85 + Math.random() * 15}%,
+                ${Math.random() * 25}% ${60 + Math.random() * 40}%
+            );
+        `;
+
+        explosionContainer.appendChild(frag);
+        fragments.push({ el: frag, startX, startY });
+    }
+
+    // Échardes fines (petits éclats)
+    for (let i = 0; i < SPLINTER_COUNT; i++) {
+        const splinter = document.createElement('div');
+        splinter.className = 'wood-splinter';
+
+        const len = 8 + Math.random() * 30;
+        const thick = 1.5 + Math.random() * 3;
+        const color = woodColors[Math.floor(Math.random() * woodColors.length)];
+
+        const startX = rect.left + Math.random() * rect.width;
+        const startY = rect.top + Math.random() * rect.height;
+
+        splinter.style.cssText = `
+            width: ${len}px; height: ${thick}px;
+            left: ${startX}px; top: ${startY}px;
+            background: ${color};
+            transform: rotate(${Math.random() * 360}deg);
+        `;
+
+        explosionContainer.appendChild(splinter);
+        fragments.push({ el: splinter, startX, startY });
+    }
+
+    // Flash d'impact central
+    const flash = document.createElement('div');
+    flash.className = 'explosion-flash';
+    flash.style.cssText = `left: ${centerX}px; top: ${centerY}px;`;
+    explosionContainer.appendChild(flash);
+
+    // Nuage de poussière
+    const dustCount = 12;
+    for (let i = 0; i < dustCount; i++) {
+        const dust = document.createElement('div');
+        dust.className = 'explosion-dust';
+        dust.style.cssText = `left: ${centerX}px; top: ${centerY}px;`;
+        explosionContainer.appendChild(dust);
+    }
+
+    // --- Phase 3: EXPLOSION ! ---
+    const explTl = gsap.timeline();
+
+    // Flash central
+    explTl.fromTo(flash,
+        { scale: 0, opacity: 1 },
+        { scale: 4, opacity: 0, duration: 0.6, ease: "power2.out" }
+    );
+
+    // Secousse écran
+    explTl.to("#game-container", {
+        x: 15, duration: 0.04, repeat: 12, yoyo: true,
+        ease: "none",
+        onComplete: () => gsap.set("#game-container", { x: 0 })
+    }, 0);
+
+    // Éjecter les fragments
+    fragments.forEach(({ el, startX, startY }) => {
+        const angle = Math.atan2(startY - centerY, startX - centerX) + (Math.random() - 0.5) * 1.2;
+        const force = 200 + Math.random() * 500;
+        const destX = Math.cos(angle) * force;
+        const destY = Math.sin(angle) * force - 100 + Math.random() * 200; // Gravité
+        const spin = -720 + Math.random() * 1440;
+
+        explTl.to(el, {
+            x: destX,
+            y: destY,
+            rotation: spin,
+            opacity: 0,
+            scale: 0.3 + Math.random() * 0.5,
+            duration: 0.8 + Math.random() * 0.6,
+            ease: "power2.out",
+        }, Math.random() * 0.1);
+    });
+
+    // Nuages de poussière
+    const dusts = explosionContainer.querySelectorAll('.explosion-dust');
+    dusts.forEach((d, i) => {
+        const angle = (i / dustCount) * Math.PI * 2 + Math.random() * 0.5;
+        explTl.fromTo(d,
+            { scale: 0.3, opacity: 0.8 },
+            {
+                x: Math.cos(angle) * (120 + Math.random() * 180),
+                y: Math.sin(angle) * (120 + Math.random() * 180),
+                scale: 2 + Math.random() * 2,
+                opacity: 0,
+                duration: 1 + Math.random() * 0.5,
+                ease: "power1.out"
+            }, 0.05
+        );
+    });
+
+    await explTl;
+
+    // Nettoyage
+    explosionContainer.remove();
+}
+
 async function victorySequence() {
     let gains = 10;
     if (state.player.blessings.includes("multiplication")) gains += 5;
@@ -1475,12 +1650,22 @@ async function victorySequence() {
     // Stop ambient monster effects
     stopEnemyParticles();
 
-    await new Promise(r => setTimeout(r, 1000));
+    // Explosion de la carte en bois !
+    await animateBossExplosion();
+
+    await new Promise(r => setTimeout(r, 500));
 
     // Fade out game container, then go to map
+    const bossCard = document.getElementById('boss-card');
     const tl = gsap.timeline();
     tl.to("#game-container", { opacity: 0, duration: 0.8 });
-    tl.add(() => advanceToNextNode());
+    tl.add(() => {
+        // Restaurer le boss card pour le prochain combat
+        if (bossCard) {
+            gsap.set(bossCard, { visibility: 'visible', filter: 'none', clearProps: 'all' });
+        }
+        advanceToNextNode();
+    });
     state.isAnimating = false;
 }
 
