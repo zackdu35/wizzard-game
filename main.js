@@ -14,9 +14,8 @@ const ENEMY_POOL = [
     { id: "hippogriff", hp: 320, attack: 14, tier: 2, image: "Furious Hippogriff.png", bg: "bg-foret-interdite.png" },
     { id: "skrewt", hp: 260, attack: 20, tier: 2, image: "Blast-Ended Skrewt.png" },
     // Tier 3 (nodes 7-8): high HP, high attack
-    { id: "werewolf", hp: 400, attack: 22, tier: 3, image: "enemy_troll.webp", bg: "bg-foret-interdite.png" },
-    { id: "dragon", hp: 450, attack: 25, tier: 3, image: "enemy_troll.webp" },
-    { id: "inferius", hp: 380, attack: 28, tier: 3, image: "enemy_troll.webp" },
+    { id: "werewolf", hp: 400, attack: 22, tier: 3, image: "werefolf-ennemy.png", bg: "bg-foret-interdite.png" },
+    { id: "dragon", hp: 450, attack: 25, tier: 3, image: "Hungarian Horntail.png", bg: "bg-foret-interdite.png" },
     { id: "centaur", hp: 420, attack: 20, tier: 3, image: "enemy_troll.webp", bg: "bg-foret-interdite.png" },
 ];
 
