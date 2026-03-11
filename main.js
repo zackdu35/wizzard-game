@@ -209,11 +209,6 @@ function renderMap() {
     const container = document.getElementById('map-nodes-container');
     container.innerHTML = '';
 
-    // Update player status bar
-    document.getElementById('map-hp').innerText = `PV: ${state.player.hp}/${state.player.maxHp}`;
-    document.getElementById('map-gold').innerText = `Galleons: ${state.player.gold}`;
-    document.getElementById('map-blessings').innerText = `Artefacts: ${state.player.blessings.length}`;
-
     state.run.columns.forEach((column, colIndex) => {
         // Add connector before each column (except first)
         if (colIndex > 0) {
@@ -312,13 +307,13 @@ function updateMapNodeInfo() {
 
     if (selectedNode.type === NODE_TYPES.COMBAT) {
         nameEl.innerText = t(`enemies.${selectedNode.enemy.id}`);
-        descEl.innerText = `PV: ${selectedNode.enemy.hp} | Attaque: ${selectedNode.enemy.attack}`;
+        descEl.innerText = "Serez-vous de taille pour ce duel ?";
     } else if (selectedNode.type === NODE_TYPES.SHOP) {
         nameEl.innerText = "Diagon Alley";
         descEl.innerText = "Depensez vos Galleons pour des artefacts magiques.";
     } else if (selectedNode.type === NODE_TYPES.BOSS) {
         nameEl.innerText = `BOSS: ${t(`enemies.${selectedNode.enemy.id}`)}`;
-        descEl.innerText = `PV: ${selectedNode.enemy.hp} | ${selectedNode.malus.description}`;
+        descEl.innerText = selectedNode.malus.description;
     } else if (selectedNode.type === NODE_TYPES.DORTOIR) {
         const healAmount = Math.floor(state.player.maxHp * 0.3);
         nameEl.innerText = "Dortoir";
@@ -345,8 +340,17 @@ function showMap() {
     document.getElementById('dortoir-screen').style.display = 'none';
     document.getElementById('main-game-bg').style.display = 'block';
     document.getElementById('main-game-bg').style.backgroundImage = "url('assets/map-bg.png')";
+    document.getElementById('grimoire-btn').style.display = 'none';
     renderMap();
-    gsap.fromTo('#map-screen', { opacity: 0 }, { opacity: 1, duration: 0.6 });
+
+    // Animation d'entrée Premium
+    const tl = gsap.timeline();
+    tl.fromTo('#map-screen', { opacity: 0 }, { opacity: 1, duration: 0.8 })
+      .fromTo('#map-title-text', { y: -50, opacity: 0 }, { y: 0, opacity: 1, duration: 1, ease: 'power3.out' }, "-=0.4")
+      .fromTo('.map-node', { scale: 0, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.5, stagger: 0.05, ease: 'back.out(1.7)' }, "-=0.6")
+      .fromTo('.map-connector', { scaleX: 0, opacity: 0 }, { scaleX: 1, opacity: 1, duration: 0.4, stagger: 0.05 }, "-=0.6")
+      .fromTo('#map-node-info', { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5 }, "-=0.2")
+      .fromTo('#btn-enter-node', { scale: 0.8, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.5, ease: 'elastic.out(1, 0.5)' }, "-=0.3");
 
     // Auto-save on map
     saveGame();
@@ -388,6 +392,7 @@ async function enterCurrentNode() {
 
         screenTransition(() => {
             document.getElementById('map-screen').style.display = 'none';
+            document.getElementById('grimoire-btn').style.display = '';
             gsap.set('#map-screen', { opacity: 1 });
             gsap.set('#game-container', { opacity: 1 });
             startNewFight();
@@ -396,6 +401,7 @@ async function enterCurrentNode() {
         mainBg.style.backgroundImage = `url('assets/shop-bg.png')`;
         screenTransition(() => {
             document.getElementById('map-screen').style.display = 'none';
+            document.getElementById('grimoire-btn').style.display = '';
             gsap.set('#map-screen', { opacity: 1 });
             document.getElementById('sanctuary-screen').style.display = 'flex';
             document.getElementById('sanctuary-screen').style.opacity = '1';
@@ -406,6 +412,7 @@ async function enterCurrentNode() {
         mainBg.style.backgroundImage = `url('assets/dortoire-bg.png')`;
         screenTransition(() => {
             document.getElementById('map-screen').style.display = 'none';
+            document.getElementById('grimoire-btn').style.display = '';
             gsap.set('#map-screen', { opacity: 1 });
             showDortoir();
         });
