@@ -132,7 +132,12 @@ const suitImages = {
 const availableBlessings = [
     { id: "grace", cost: 15 },
     { id: "multiplication", cost: 20 },
-    { id: "eau_vive", cost: 25 }
+    { id: "eau_vive", cost: 25 },
+    { id: "cape_invisibilite", cost: 20 },
+    { id: "retourneur_temps", cost: 25 },
+    { id: "carte_maraudeur", cost: 15 },
+    { id: "vif_or", cost: 20 },
+    { id: "choixpeau", cost: 30 }
 ];
 
 // --- GRIMOIRE DES SORTILÈGES ---
@@ -1824,6 +1829,15 @@ function buyBlessing(blessing, btn) {
         btn.innerText = t('ui.owned');
         btn.disabled = true;
         if (blessing.id === "grace") state.player.maxDiscards += 1;
+        if (blessing.id === "cape_invisibilite") {
+            state.player.maxHp += 15;
+            state.player.hp = Math.min(state.player.hp + 15, state.player.maxHp);
+        }
+        if (blessing.id === "retourneur_temps") {
+            state.player.maxDiscards += 2;
+            state.player.discards += 2;
+        }
+        if (blessing.id === "vif_or") state.critChance += 0.05;
 
         // Flash doré sur la carte
         const card = btn.closest('.blessing-card');

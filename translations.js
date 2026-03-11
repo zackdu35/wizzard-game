@@ -79,7 +79,12 @@ const translations = {
         blessings: {
             grace: { name: "Baguette de Sureau", desc: "+1 Défausse maximum par combat." },
             multiplication: { name: "Pierre Philosophale", desc: "Gagnez +5 Galleons supplémentaires par victoire." },
-            eau_vive: { name: "Potion Polyjuice", desc: "Le sortilège 'Harmonie de Maison' (Couleur) inflige +30 dégâts de base." }
+            eau_vive: { name: "Potion Polyjuice", desc: "Le sortilège 'Harmonie de Maison' (Couleur) inflige +30 dégâts de base." },
+            cape_invisibilite: { name: "Cape d'Invisibilité", desc: "+15 PV maximum et soigne 15 PV." },
+            retourneur_temps: { name: "Retourneur de Temps", desc: "+2 Défausses maximum par combat." },
+            carte_maraudeur: { name: "Carte du Maraudeur", desc: "Le sortilège 'Duo Enchanté' (Paire) inflige +20 dégâts de base." },
+            vif_or: { name: "Vif d'Or", desc: "+5% de chance de coup critique par carte." },
+            choixpeau: { name: "Choixpeau Magique", desc: "Le sortilège 'Convocation Complète' (Full House) inflige +50 dégâts de base." }
         },
         enemies: {
             troll: "Le Troll du Couloir",
@@ -179,7 +184,12 @@ const translations = {
         blessings: {
             grace: { name: "Elder Wand", desc: "+1 maximum Discard per combat." },
             multiplication: { name: "Philosopher's Stone", desc: "Gain +5 extra Galleons per victory." },
-            eau_vive: { name: "Polyjuice Potion", desc: "The 'House Harmony' (Flush) spell deals +30 base damage." }
+            eau_vive: { name: "Polyjuice Potion", desc: "The 'House Harmony' (Flush) spell deals +30 base damage." },
+            cape_invisibilite: { name: "Cloak of Invisibility", desc: "+15 max HP and heals 15 HP." },
+            retourneur_temps: { name: "Time-Turner", desc: "+2 maximum Discards per combat." },
+            carte_maraudeur: { name: "Marauder's Map", desc: "The 'Enchanted Duo' (Pair) spell deals +20 base damage." },
+            vif_or: { name: "Golden Snitch", desc: "+5% critical hit chance per card." },
+            choixpeau: { name: "Sorting Hat", desc: "The 'Complete Summoning' (Full House) spell deals +50 base damage." }
         },
         enemies: {
             troll: "The Hallway Troll",
@@ -279,7 +289,12 @@ const translations = {
         blessings: {
             grace: { name: "Bacchetta di Sambuco", desc: "+1 Scarto massimo per combattimento." },
             multiplication: { name: "Pietra Filosofale", desc: "Guadagna +5 Galleoni extra per vittoria." },
-            eau_vive: { name: "Pozione Polisucco", desc: "L'incantesimo 'Armonia della Casa' (Colore) infligge +30 danni base." }
+            eau_vive: { name: "Pozione Polisucco", desc: "L'incantesimo 'Armonia della Casa' (Colore) infligge +30 danni base." },
+            cape_invisibilite: { name: "Mantello dell'Invisibilità", desc: "+15 PV massimi e cura 15 PV." },
+            retourneur_temps: { name: "Giratempo", desc: "+2 Scarti massimi per combattimento." },
+            carte_maraudeur: { name: "Mappa del Malandrino", desc: "L'incantesimo 'Duo Incantato' (Coppia) infligge +20 danni base." },
+            vif_or: { name: "Boccino d'Oro", desc: "+5% di probabilità di colpo critico per carta." },
+            choixpeau: { name: "Cappello Parlante", desc: "L'incantesimo 'Convocazione Completa' (Full) infligge +50 danni base." }
         },
         enemies: {
             troll: "Il Troll del Corridoio",

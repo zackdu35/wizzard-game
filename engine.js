@@ -117,6 +117,9 @@ function evaluateHand(selectedCards, ownedBlessings = []) {
     else if (freq[0] === 3 && freq[1] === 2) {
         comboName = "Convocation Complète";
         baseCombo = 175;
+        if (ownedBlessings.includes("choixpeau")) {
+            baseCombo += 50;
+        }
         comboCardIds = new Set(selectedCards.map(c => c.id));
     }
     // 5. Couleur — toutes les 5 cartes
@@ -152,6 +155,9 @@ function evaluateHand(selectedCards, ownedBlessings = []) {
     else if (freq[0] === 2) {
         comboName = "Duo Enchanté";
         baseCombo = 20;
+        if (ownedBlessings.includes("carte_maraudeur")) {
+            baseCombo += 20;
+        }
         const pairRank = +Object.keys(counts).find(r => counts[r] === 2);
         comboCardIds = new Set(selectedCards.filter(c => c.rank === pairRank).map(c => c.id));
     }
