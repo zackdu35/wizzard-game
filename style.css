@@ -1938,458 +1938,190 @@ button:disabled {
 }
 
 /* --- MAP SCREEN --- */
-/* ================================================================
-   CARTE DU MONDE - PREMIUM PARCHMENT MAP
-   ================================================================ */
-
 #map-screen {
     position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: transparent;
     display: none;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
     z-index: 1400;
-    overflow: hidden;
+    padding: 40px;
 }
 
-/* --- Fond atmosphérique --- */
-#map-bg {
-    position: absolute;
-    inset: 0;
-    /* Remplacer par url('assets/map-bg.webp') quand l'image est prête */
-    background:
-        radial-gradient(ellipse at 50% 40%, rgba(25, 15, 5, 0.7) 0%, rgba(5, 3, 1, 0.95) 70%),
-        linear-gradient(180deg, #0d0906 0%, #1a1008 40%, #0a0804 100%);
-    background-size: cover;
-    background-position: center;
-    z-index: 0;
+#map-title {
+    font-family: 'Cinzel', serif;
+    font-size: 3rem;
+    color: var(--accent-gold);
+    letter-spacing: 10px;
+    margin-bottom: 20px;
+    text-shadow: 0 0 20px rgba(197, 160, 89, 0.3);
 }
 
-#map-vignette {
-    position: absolute;
-    inset: 0;
-    background: radial-gradient(ellipse at center,
-        transparent 30%,
-        rgba(0, 0, 0, 0.4) 60%,
-        rgba(0, 0, 0, 0.8) 100%);
-    z-index: 1;
-    pointer-events: none;
+#map-player-status {
+    display: flex;
+    gap: 40px;
+    margin-bottom: 40px;
+    font-family: 'Metamorphous', cursive;
+    font-size: 1.1rem;
+    color: var(--text-secondary);
 }
 
-/* --- Parchemin --- */
-#map-parchment {
-    position: relative;
-    width: min(94vw, 1200px);
-    height: min(85vh, 750px);
-    background:
-        /* Lumière directionnelle */
-        radial-gradient(ellipse at 35% 25%, rgba(245, 235, 200, 0.3) 0%, transparent 40%),
-        /* Texture parchemin riche */
-        radial-gradient(ellipse at 20% 80%, rgba(195, 170, 120, 0.6) 0%, transparent 35%),
-        radial-gradient(ellipse at 80% 30%, rgba(205, 185, 140, 0.5) 0%, transparent 35%),
-        radial-gradient(ellipse at 60% 70%, rgba(180, 155, 110, 0.4) 0%, transparent 30%),
-        linear-gradient(155deg, #ddd0a8 0%, #d4c49a 15%, #c8b888 30%, #bfac78 50%, #c9b98a 70%, #d6c89e 85%, #ddd0a8 100%);
-    border-radius: 4px;
-    box-shadow:
-        /* Cadre bois */
-        0 0 0 3px #6b5330,
-        0 0 0 6px #3e2a15,
-        0 0 0 8px rgba(0, 0, 0, 0.5),
-        /* Profondeur */
-        0 25px 80px rgba(0, 0, 0, 0.8),
-        0 8px 25px rgba(0, 0, 0, 0.6),
-        0 2px 8px rgba(0, 0, 0, 0.4);
-    overflow: hidden;
-    z-index: 2;
+#map-nodes-container {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    margin-bottom: 40px;
+    overflow-x: auto;
+    padding: 20px;
 }
 
-/* Texture overlay (taches d'encre, usure) */
-#map-parchment-texture {
-    position: absolute;
-    inset: 0;
-    background:
-        /* Taches d'humidité */
-        radial-gradient(ellipse at 12% 88%, rgba(120, 85, 40, 0.2) 0%, transparent 20%),
-        radial-gradient(ellipse at 85% 15%, rgba(100, 70, 30, 0.18) 0%, transparent 18%),
-        radial-gradient(ellipse at 45% 55%, rgba(95, 65, 25, 0.08) 0%, transparent 30%),
-        radial-gradient(ellipse at 75% 75%, rgba(110, 75, 35, 0.12) 0%, transparent 15%),
-        radial-gradient(ellipse at 30% 20%, rgba(130, 95, 45, 0.1) 0%, transparent 22%),
-        /* Grain de papier (bruit simulé) */
-        repeating-conic-gradient(rgba(0,0,0,0.02) 0% 25%, transparent 0% 50%) 0 0 / 4px 4px;
-    pointer-events: none;
-    z-index: 1;
-}
-
-/* Bords brûlés / vieillis */
-#map-parchment-burn {
-    position: absolute;
-    inset: 0;
-    box-shadow:
-        inset 0 0 120px rgba(80, 45, 10, 0.5),
-        inset 0 0 60px rgba(60, 30, 5, 0.3),
-        inset 15px 15px 40px rgba(90, 55, 15, 0.25),
-        inset -15px -15px 40px rgba(90, 55, 15, 0.25),
-        inset 15px -15px 35px rgba(80, 45, 10, 0.2),
-        inset -15px 15px 35px rgba(80, 45, 10, 0.2);
-    pointer-events: none;
-    z-index: 2;
-    border-radius: 4px;
-}
-
-/* --- SVG Trail --- */
-#map-trail {
-    position: absolute;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    z-index: 3;
-    pointer-events: none;
-}
-
-/* --- Couche des nœuds --- */
-#map-nodes-layer {
-    position: absolute;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    z-index: 5;
-}
-
-/* ================================================================
-   NŒUDS DE LA CARTE
-   ================================================================ */
-
-.map-node {
-    position: absolute;
-    transform: translate(-50%, -50%);
-    cursor: default;
+.map-column {
     display: flex;
     flex-direction: column;
     align-items: center;
-    transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-                filter 0.3s ease;
+    gap: 20px;
+}
+
+.map-node {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: default;
+    position: relative;
 }
 
 .map-node-icon {
-    width: 56px;
-    height: 56px;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    border: 3px solid var(--border-color);
     display: flex;
     justify-content: center;
     align-items: center;
-    position: relative;
-    border-radius: 50%;
-    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    /* Sceau de cire en relief */
-    filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.4))
-            drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
+    font-size: 1.5rem;
+    background: var(--bg-card-dark);
+    transition: all 0.3s ease;
 }
 
-.map-node-icon svg {
-    width: 100%;
-    height: 100%;
-}
-
-.map-node-label {
-    font-family: 'Cinzel', serif;
-    font-size: 0.6rem;
-    font-weight: 700;
-    color: #4a3520;
-    margin-top: 4px;
-    text-transform: uppercase;
-    text-align: center;
-    max-width: 100px;
-    line-height: 1.3;
-    letter-spacing: 0.5px;
-    text-shadow:
-        0 1px 0 rgba(220, 200, 160, 0.9),
-        0 -1px 2px rgba(80, 50, 20, 0.1);
-}
-
-/* --- Complété : croix rouge sang --- */
 .map-node.completed .map-node-icon {
-    opacity: 0.45;
-    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3)) grayscale(0.3);
-}
-.map-node.completed .map-node-label {
+    border-color: #555;
     opacity: 0.4;
 }
 
-/* Double trait de croix peinte à la main */
-.map-node.completed::before,
-.map-node.completed::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 42px;
-    height: 5px;
-    background: linear-gradient(90deg, transparent 0%, #8b1a1a 15%, #a52020 50%, #8b1a1a 85%, transparent 100%);
-    border-radius: 3px;
-    z-index: 10;
-    pointer-events: none;
-    box-shadow:
-        0 1px 3px rgba(0, 0, 0, 0.4),
-        0 0 8px rgba(139, 26, 26, 0.3);
-}
-.map-node.completed::before {
-    transform: translate(-50%, -50%) rotate(45deg);
-}
-.map-node.completed::after {
-    transform: translate(-50%, -50%) rotate(-45deg);
-}
-
-/* --- Courant : glow doré premium --- */
-.map-node.current {
-    cursor: pointer;
-    z-index: 10;
-}
-
 .map-node.current .map-node-icon {
-    animation: node-glow 2.5s ease-in-out infinite;
+    border-color: var(--accent-gold);
+    box-shadow: 0 0 20px rgba(197, 160, 89, 0.5);
+    animation: pulse-glow 2s infinite;
 }
 
-.map-node.current .map-node-label {
-    color: #3a2510;
-    text-shadow:
-        0 0 8px rgba(199, 161, 59, 0.4),
-        0 1px 0 rgba(220, 200, 160, 0.9);
-}
-
-.map-node.current:hover {
-    transform: translate(-50%, -50%) scale(1.12);
-}
-
-.map-node.current:hover .map-node-icon {
-    filter: drop-shadow(0 0 15px rgba(199, 161, 59, 1))
-            drop-shadow(0 0 35px rgba(199, 161, 59, 0.6))
-            drop-shadow(0 4px 8px rgba(0, 0, 0, 0.4));
-}
-
-/* Sélectionné : lueur violette */
 .map-node.current.selected .map-node-icon {
-    animation: node-glow-selected 2s ease-in-out infinite;
+    border-color: #a29bfe;
+    box-shadow: 0 0 25px rgba(120, 80, 255, 0.6);
 }
 
-/* --- Upcoming : fantôme --- */
 .map-node.upcoming .map-node-icon {
-    opacity: 0.3;
-    filter: grayscale(0.6) drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
-}
-.map-node.upcoming .map-node-label {
-    opacity: 0.3;
+    border-color: var(--border-color);
+    opacity: 0.6;
 }
 
-@keyframes node-glow {
-    0%, 100% {
-        filter: drop-shadow(0 0 8px rgba(199, 161, 59, 0.7))
-                drop-shadow(0 0 20px rgba(199, 161, 59, 0.3))
-                drop-shadow(0 3px 6px rgba(0, 0, 0, 0.4));
+/* Node type colors */
+.map-node-icon.combat {
+    background: rgba(116, 0, 1, 0.3);
+}
+
+.map-node-icon.shop {
+    background: rgba(197, 160, 89, 0.2);
+}
+
+.map-node-icon.boss {
+    background: rgba(116, 0, 1, 0.5);
+}
+
+.map-node-icon.dortoir {
+    background: rgba(30, 80, 160, 0.3);
+}
+
+.map-node-label {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.65rem;
+    color: var(--text-secondary);
+    margin-top: 8px;
+    text-transform: uppercase;
+    text-align: center;
+    max-width: 80px;
+    line-height: 1.2;
+}
+
+/* Connector lines between columns */
+.map-connector {
+    width: 40px;
+    height: 3px;
+    background: var(--border-color);
+    flex-shrink: 0;
+}
+
+.map-connector.completed {
+    background: var(--accent-gold);
+    opacity: 0.4;
+}
+
+@keyframes pulse-glow {
+
+    0%,
+    100% {
+        box-shadow: 0 0 15px rgba(197, 160, 89, 0.3);
     }
+
     50% {
-        filter: drop-shadow(0 0 16px rgba(199, 161, 59, 1))
-                drop-shadow(0 0 40px rgba(199, 161, 59, 0.5))
-                drop-shadow(0 3px 6px rgba(0, 0, 0, 0.4));
+        box-shadow: 0 0 30px rgba(197, 160, 89, 0.6);
     }
 }
-
-@keyframes node-glow-selected {
-    0%, 100% {
-        filter: drop-shadow(0 0 10px rgba(120, 80, 255, 0.8))
-                drop-shadow(0 0 25px rgba(120, 80, 255, 0.4))
-                drop-shadow(0 3px 6px rgba(0, 0, 0, 0.4));
-    }
-    50% {
-        filter: drop-shadow(0 0 18px rgba(120, 80, 255, 1))
-                drop-shadow(0 0 45px rgba(120, 80, 255, 0.6))
-                drop-shadow(0 3px 6px rgba(0, 0, 0, 0.4));
-    }
-}
-
-/* ================================================================
-   JETON JOUEUR
-   ================================================================ */
-
-#map-player-token {
-    position: absolute;
-    width: 48px; height: 48px;
-    transform: translate(-50%, -50%);
-    z-index: 20;
-    pointer-events: none;
-    display: none;
-}
-
-#map-token-glow {
-    position: absolute;
-    inset: -12px;
-    border-radius: 50%;
-    background: radial-gradient(circle,
-        rgba(199, 161, 59, 0.4) 0%,
-        rgba(199, 161, 59, 0.15) 40%,
-        transparent 70%);
-    animation: token-glow-pulse 2.5s ease-in-out infinite;
-}
-
-#map-token-inner {
-    position: relative;
-    width: 44px; height: 44px;
-    animation: token-float 3s ease-in-out infinite;
-    filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.6))
-            drop-shadow(0 0 12px rgba(199, 161, 59, 0.4));
-}
-
-@keyframes token-float {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-6px); }
-}
-
-@keyframes token-glow-pulse {
-    0%, 100% { opacity: 0.6; transform: scale(1); }
-    50% { opacity: 1; transform: scale(1.15); }
-}
-
-/* ================================================================
-   STATS OVERLAY - Style métallique
-   ================================================================ */
-
-#map-stats {
-    position: absolute;
-    bottom: 22px;
-    right: 22px;
-    z-index: 15;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    align-items: flex-end;
-    padding: 12px 16px;
-    background: rgba(30, 20, 8, 0.7);
-    border-radius: 8px;
-    border: 1px solid rgba(199, 161, 59, 0.2);
-    backdrop-filter: blur(8px);
-    box-shadow:
-        0 4px 20px rgba(0, 0, 0, 0.4),
-        inset 0 1px 0 rgba(255, 255, 255, 0.05);
-}
-
-.map-stat {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-family: 'Cinzel', serif;
-    font-size: 1.3rem;
-    font-weight: 700;
-    letter-spacing: -1px;
-}
-
-.map-stat-value {
-    /* Texte métallique doré */
-    background: linear-gradient(135deg,
-        #f5e6a3 0%, #c7a13b 40%, #8d7340 60%, #c7a13b 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.6));
-}
-
-.map-stat-icon {
-    font-size: 1.2rem;
-}
-.map-stat-icon.stat-hp {
-    color: #c0392b;
-    filter: drop-shadow(0 0 4px rgba(192, 57, 43, 0.5));
-}
-.map-stat-icon.stat-gold {
-    color: #c7a13b;
-    filter: drop-shadow(0 0 4px rgba(199, 161, 59, 0.5));
-}
-.map-stat-icon.stat-artifact {
-    color: #8e6cbf;
-    filter: drop-shadow(0 0 4px rgba(142, 108, 191, 0.5));
-}
-
-/* ================================================================
-   INFO PANEL - Glassmorphism premium
-   ================================================================ */
 
 #map-node-info {
-    position: absolute;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
     text-align: center;
-    z-index: 15;
-    background: rgba(15, 10, 5, 0.8);
-    backdrop-filter: blur(16px) saturate(120%);
-    -webkit-backdrop-filter: blur(16px) saturate(120%);
-    padding: 16px 40px 14px;
-    border-radius: 10px;
-    border: 1px solid rgba(199, 161, 59, 0.25);
-    box-shadow:
-        0 8px 32px rgba(0, 0, 0, 0.5),
-        0 2px 8px rgba(0, 0, 0, 0.3),
-        inset 0 1px 0 rgba(255, 255, 255, 0.06);
-    min-width: 300px;
-}
-
-/* Liseré doré en haut */
-#map-node-info::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 20%; right: 20%;
-    height: 2px;
-    background: linear-gradient(90deg,
-        transparent 0%,
-        rgba(199, 161, 59, 0.3) 20%,
-        rgba(199, 161, 59, 0.7) 50%,
-        rgba(199, 161, 59, 0.3) 80%,
-        transparent 100%);
-    border-radius: 2px;
+    margin-bottom: 30px;
+    min-height: 80px;
 }
 
 #map-node-name {
     font-family: 'Cinzel', serif;
-    font-size: 1.4rem;
-    font-weight: 700;
-    letter-spacing: 2px;
-    margin-bottom: 5px;
-    /* Texte métallique */
-    background: linear-gradient(135deg,
-        #f5e6a3 0%, #e8d9b4 30%, #c7a13b 60%, #e8d9b4 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+    font-size: 1.8rem;
+    color: var(--accent-gold);
+    margin-bottom: 8px;
 }
 
 #map-node-desc {
-    font-family: 'Metamorphous', cursive;
-    font-size: 0.85rem;
+    font-size: 1rem;
     color: var(--text-secondary);
     font-style: italic;
-    margin-bottom: 12px;
 }
 
-#map-node-info .primary-btn {
-    font-size: 0.85rem;
-    padding: 9px 32px;
-    letter-spacing: 2px;
-}
-
-/* ================================================================
-   RESPONSIVE
-   ================================================================ */
-
+/* --- RESPONSIVE MAP --- */
 @media (max-width: 900px) {
-    #map-parchment {
-        width: 98vw;
-        height: 88vh;
+    #map-title {
+        font-size: 2rem;
+        letter-spacing: 5px;
     }
-    .map-node-icon { width: 44px; height: 44px; }
-    .map-node-label { font-size: 0.5rem; }
-    .map-stat { font-size: 1rem; }
-    #map-stats { padding: 8px 12px; }
-    #map-node-info { padding: 12px 24px; min-width: 240px; }
-    #map-node-name { font-size: 1.1rem; }
-    #map-player-token { width: 38px; height: 38px; }
-    #map-token-inner { width: 34px; height: 34px; }
+
+    #map-player-status {
+        gap: 20px;
+        font-size: 0.9rem;
+    }
+
+    .map-node-icon {
+        width: 45px;
+        height: 45px;
+        font-size: 1.2rem;
+    }
+
+    .map-connector {
+        width: 25px;
+    }
 }
 
 /* --- DORTOIR SCREEN --- */
