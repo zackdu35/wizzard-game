@@ -340,6 +340,7 @@ function showMap() {
     document.getElementById('sanctuary-screen').style.display = 'none';
     document.getElementById('dortoir-screen').style.display = 'none';
     document.getElementById('main-game-bg').style.display = 'block';
+    document.getElementById('main-game-bg').style.backgroundImage = "url('assets/map-bg.png')";
     renderMap();
     gsap.fromTo('#map-screen', { opacity: 0 }, { opacity: 1, duration: 0.6 });
 
@@ -417,7 +418,7 @@ function showDortoir() {
     document.getElementById('dortoir-hp-after').innerText = `PV: ${state.player.hp}/${state.player.maxHp}`;
 
     // Update player HP bar
-    document.getElementById('player-hp-text').innerText = `${state.player.hp}/${state.player.maxHp}`;
+    document.getElementById('player-hp-text').innerText = `${state.player.hp}`;
     gsap.to("#player-hp-fill", { width: `${(state.player.hp / state.player.maxHp) * 100}%`, duration: 0.8 });
 
     gsap.fromTo('#dortoir-screen', { opacity: 0 }, { opacity: 1, duration: 0.8 });
@@ -1150,7 +1151,7 @@ function updateUI() {
     document.getElementById('btn-play').disabled = !anyS || state.isAnimating;
     document.getElementById('btn-discard').disabled = !anyS || state.player.discards <= 0 || state.isAnimating;
 
-    document.getElementById('player-hp-text').innerText = `${state.player.hp}/${state.player.maxHp}`;
+    document.getElementById('player-hp-text').innerText = `${state.player.hp}`;
     document.getElementById('crit-value').innerText = `${Math.round(state.critChance * 100)}%`;
 
     // Nouveaux overlays dynamiques sur la carte boss (Corners only)
@@ -1423,9 +1424,12 @@ async function executeTurn() {
     tl2.add(() => {
         state.player.hp = Math.max(0, state.player.hp - state.enemy.attack);
 
-        // Mise à jour HP avec petit éclat
-        gsap.to("#player-hp-fill", { width: `${(state.player.hp / state.player.maxHp) * 100}%`, duration: 0.4, ease: "power2.out" });
-        document.getElementById('player-hp-text').innerText = `${state.player.hp}/${state.player.maxHp}`;
+        // Mise à jour HP avec petit éclat rouge
+        document.getElementById('player-hp-text').innerText = `${state.player.hp}`;
+        gsap.fromTo(['#player-hp-text', '.icon-hp-simple'], 
+            { color: '#ff4d4d', scale: 1.5, textShadow: '0 0 20px #ff0000' }, 
+            { color: '#ffffff', scale: 1, textShadow: '2px 2px 5px rgba(0,0,0,0.9), 0 0 15px rgba(0,0,0,0.7)', duration: 0.6, ease: "power2.out" }
+        );
 
         // Effets visuels d'impact (Vignette & Secousse)
         gsap.fromTo(vignette, { opacity: 0 }, { opacity: 1, duration: 0.1, yoyo: true, repeat: 1 });

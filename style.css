@@ -570,74 +570,56 @@ body {
     right: 40px;
     display: flex;
     flex-direction: column;
+    align-items: flex-end;
     gap: 15px;
-    padding: 15px 20px;
-    background: rgba(15, 12, 8, 0.85);
-    background-image:
-        linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)),
-        radial-gradient(circle at top left, rgba(199, 161, 59, 0.15), transparent);
-    backdrop-filter: blur(12px);
-    border-radius: 8px;
-    border: 2px solid #3c322a;
-    box-shadow:
-        0 20px 40px rgba(0, 0, 0, 0.8),
-        inset 0 0 15px rgba(0, 0, 0, 0.5);
     z-index: 100;
+    pointer-events: none; /* Ne bloque pas les clics sur la carte */
 }
 
-.stat-box {
+.stat-row {
     display: flex;
-    flex-direction: row-reverse;
-    /* Icons on the right */
-    justify-content: flex-start;
     align-items: center;
     gap: 15px;
-    padding: 5px 0;
-}
-
-.stat-box:not(:last-child) {
-    border-bottom: 1px solid rgba(199, 161, 59, 0.1);
-}
-
-.stat-label {
-    width: 42px;
-    height: 42px;
-    background-size: cover;
-    background-repeat: no-repeat;
-    background-position: center;
-    border-radius: 50%;
-    border: 2px solid var(--accent-gold);
-    box-shadow: 0 0 10px rgba(199, 161, 59, 0.3);
-    flex-shrink: 0;
+    justify-content: flex-end;
 }
 
 .stat-value {
     font-family: 'Metamorphous', cursive;
-    font-size: 1.4rem;
-    color: #e8dfc0;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
-    letter-spacing: 1px;
-}
-
-#label-galleons {
-    background-image: url('assets/icon_galleon.webp');
-}
-
-#label-hp {
-    background-image: url('assets/icon_heart.webp');
-}
-
-#label-discards {
-    background-image: url('assets/icon_recycle.webp');
-}
-
-.stat-value {
-    font-family: 'Metamorphous', cursive;
-    font-size: 1.2rem;
+    font-size: 2.8rem;
     color: #fff;
-    text-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
+    text-shadow: 2px 2px 5px rgba(0,0,0,0.9), 0 0 15px rgba(0,0,0,0.7);
+    line-height: 1;
 }
 
+.stat-icon {
+    font-size: 2.6rem;
+    color: #fff;
+    text-shadow: 2px 2px 5px rgba(0,0,0,0.9), 0 0 15px rgba(0,0,0,0.7);
+    line-height: 1;
+    width: 40px;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.icon-hp-simple::before { content: '\2665'; } /* Coeur ♥ */
+.icon-gold-simple::before { content: '\25C9'; } /* Bulle avec centre ◉ */
+.icon-crit-simple::before { content: '\2726'; } /* Etincelle ✦ */
+
+/* Tailles réduites pour Or et Critique (lignes 2 et 3) */
+.stat-row:not(:first-child) {
+    gap: 12px;
+}
+
+.stat-row:not(:first-child) .stat-value {
+    font-size: 2rem;
+}
+
+.stat-row:not(:first-child) .stat-icon {
+    font-size: 1.8rem;
+    width: 30px;
+}
 
 /* detected-combo moved below */
 
