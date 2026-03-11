@@ -1,5 +1,5 @@
 // --- CONFIGURATION DEV ---
-const DEV_MODE = false; // Passez à false pour désactiver le mode développeur
+const DEV_MODE = true; // Passez à false pour désactiver le mode développeur
 
 // --- POOL D'ENNEMIS ---
 const ENEMY_POOL = [
@@ -956,8 +956,6 @@ function updateLocalizedUI() {
     document.getElementById('btn-play').innerText = t('ui.cast_spell');
     document.getElementById('btn-discard').innerText = t('ui.discard');
     document.getElementById('grimoire-title').innerText = t('ui.grimoire_title');
-    document.getElementById('grimoire-subtitle').innerText = t('ui.grimoire_subtitle');
-    document.getElementById('btn-close-guide').innerText = t('ui.close_grimoire');
     document.getElementById('btn-restart').innerText = t('ui.new_adventure');
     document.getElementById('sanctuary-title').innerText = t('ui.sanctuary_title');
     document.getElementById('sanctuary-gold-label').innerText = t('ui.galleons');

@@ -1243,6 +1243,9 @@ button:disabled {
     -webkit-mask:
         linear-gradient(#fff 0 0) content-box,
         linear-gradient(#fff 0 0);
+    mask:
+        linear-gradient(#fff 0 0) content-box,
+        linear-gradient(#fff 0 0);
     -webkit-mask-composite: xor;
     mask-composite: exclude;
     pointer-events: none;
@@ -1429,7 +1432,7 @@ button:disabled {
     border-top-width: 6px;
     border-bottom-width: 6px;
     width: 100%;
-    max-width: 800px;
+    max-width: 1400px; /* Assez large pour 2 pages */
     max-height: 90vh;
     padding: 0;
     border-radius: 6px;
@@ -1446,7 +1449,7 @@ button:disabled {
     overflow: hidden;
 }
 
-/* Inner parchment page */
+/* Inner parchment page avec ombre de reliure au centre */
 .modal-content::before {
     content: '';
     position: absolute;
@@ -1455,6 +1458,15 @@ button:disabled {
     right: 0;
     bottom: 0;
     background:
+        /* Reliure ombrée centrale pour l'effet 2 pages */
+        linear-gradient(to right, 
+            transparent 47%, 
+            rgba(0, 0, 0, 0.3) 49%, 
+            rgba(0, 0, 0, 0.8) 50%, 
+            rgba(255, 255, 255, 0.1) 50.5%, 
+            rgba(0, 0, 0, 0.3) 51%, 
+            transparent 53%),
+        /* Lignes de parchemin */
         repeating-linear-gradient(0deg,
             transparent,
             transparent 40px,
@@ -1464,25 +1476,10 @@ button:disabled {
     z-index: 0;
 }
 
-/* Ornate top border decoration */
-.modal-content::after {
-    content: '\2756  \2726  \2756';
-    position: absolute;
-    top: 8px;
-    left: 0;
-    right: 0;
-    text-align: center;
-    font-size: 1rem;
-    color: rgba(199, 161, 59, 0.4);
-    letter-spacing: 8px;
-    pointer-events: none;
-    z-index: 1;
-}
-
 .grimoire-scroll {
     width: 100%;
     overflow-y: auto;
-    padding: 40px 35px 30px;
+    padding: 25px 70px 40px; /* Marges réduites en haut */
     position: relative;
     z-index: 1;
 }
@@ -1557,23 +1554,29 @@ button:disabled {
 #combo-list {
     width: 100%;
     list-style: none;
-    display: flex;
-    flex-direction: column;
-    gap: 0;
+    column-count: 2;
+    column-gap: 120px; /* Grand espace pour la reliure */
+    column-rule: none; /* Remplacé par le faux spine central */
     margin-bottom: 25px;
 }
 
 .combo-item {
-    display: flex;
+    display: grid;
+    grid-template-areas: 
+        "rank info stats"
+        ". cards cards";
+    grid-template-columns: auto 1fr auto;
+    gap: 5px 25px;
     align-items: center;
-    gap: 16px;
-    padding: 16px 18px;
+    padding: 10px 24px;
     background: transparent;
     border: none;
     border-bottom: 1px solid rgba(199, 161, 59, 0.1);
     border-radius: 0;
     transition: all 0.2s ease;
     position: relative;
+    break-inside: avoid-column; /* Ne pas couper un combo entre deux pages */
+    page-break-inside: avoid;
 }
 
 .combo-item:first-child {
@@ -1586,48 +1589,83 @@ button:disabled {
 
 /* Roman numeral rank badge */
 .combo-rank {
-    width: 28px;
-    height: 28px;
+    grid-area: rank;
+    width: 44px;
+    height: 44px;
     display: flex;
     justify-content: center;
     align-items: center;
     font-family: 'Cinzel', serif;
-    font-size: 0.7rem;
+    font-size: 1.1rem;
     font-weight: bold;
     color: var(--accent-gold);
-    border: 1px solid rgba(199, 161, 59, 0.3);
+    border: 1px solid rgba(199, 161, 59, 0.4);
     border-radius: 50%;
     flex-shrink: 0;
-    opacity: 0.7;
+    opacity: 0.9;
 }
 
-/* Mini card illustrations */
 .combo-illustration {
+    grid-area: cards;
     display: flex;
-    gap: 3px;
     flex-shrink: 0;
     align-items: center;
+    padding: 10px 15px 10px 5px; /* Espace pour le hover effect */
 }
 
+/* Style de carte premium façon "carte de collection" */
 .combo-mini-card {
-    width: 34px;
-    height: 51px;
+    width: 100px; /* Cartes géantes */
+    height: 150px;
     background-size: 100% 100%;
     background-position: center;
-    border-radius: 3px;
-    border: 1px solid rgba(199, 161, 59, 0.25);
-    box-shadow:
-        1px 2px 5px rgba(0, 0, 0, 0.6),
-        inset 0 0 3px rgba(0, 0, 0, 0.2);
+    border-radius: 6px; /* Coins légèrement arrondis pour suivre la taille */
+    border: 2px solid rgba(220, 185, 95, 0.4); /* Bordure dorée plus épaisse */
+    box-shadow: 
+        -4px 4px 10px rgba(0, 0, 0, 0.7), /* Ombre portée dense */
+        inset 0 0 10px rgba(0, 0, 0, 0.5), /* Ombre interne pour l'effet vintage */
+        0 0 0 1px #000; /* Liseré noir externe */
     flex-shrink: 0;
-    transition: transform 0.2s ease;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    margin-right: -30px; /* Cartes superposées ! */
+    position: relative;
+    /* Effet parchemin surbrillance */
+    background-blend-mode: multiply;
+    background-color: #e6dac3; 
 }
 
-.combo-item:hover .combo-mini-card {
-    transform: translateY(-2px);
+/* La dernière carte de la main n'est pas recouverte */
+.combo-mini-card:last-child {
+    margin-right: 0;
 }
+
+/* Effet de lueur et soulèvement au survol pour donner vie aux cartes */
+.combo-item:hover .combo-mini-card {
+    border-color: rgba(255, 215, 0, 0.8);
+    box-shadow: 
+        -8px 8px 15px rgba(0, 0, 0, 0.6),
+        0 0 15px rgba(255, 215, 0, 0.4);
+}
+
+/* Effet "éventail" au survol du combo entier */
+.combo-item:hover .combo-mini-card:nth-child(1) { transform: translateY(-5px) rotate(-6deg); z-index: 10; }
+.combo-item:hover .combo-mini-card:nth-child(2) { transform: translateY(-10px) rotate(-3deg); z-index: 11; }
+.combo-item:hover .combo-mini-card:nth-child(3) { transform: translateY(-14px) rotate(0deg); z-index: 12; }
+.combo-item:hover .combo-mini-card:nth-child(4) { transform: translateY(-10px) rotate(3deg); z-index: 13; }
+.combo-item:hover .combo-mini-card:nth-child(5) { transform: translateY(-5px) rotate(6deg); z-index: 14; }
+
+/* Cas avec 4 cartes */
+.combo-illustration > :nth-child(4):last-child { margin-right: 0; }
+.combo-item:hover .combo-illustration > :nth-child(4):last-child { transform: translateY(-5px) rotate(4deg); z-index: 13; }
+/* Cas avec 3 cartes */
+.combo-illustration > :nth-child(3):last-child { margin-right: 0; }
+.combo-item:hover .combo-illustration > :nth-child(3):last-child { transform: translateY(-7px) rotate(4deg); z-index: 12; }
+/* Cas avec 2 cartes */
+.combo-illustration > :nth-child(2):last-child { margin-right: 0; }
+.combo-item:hover .combo-illustration > :nth-child(2):last-child { transform: translateY(-5px) rotate(3deg); z-index: 11; }
 
 .combo-info {
+    grid-area: info;
     display: flex;
     flex-direction: column;
     text-align: left;
@@ -1639,18 +1677,19 @@ button:disabled {
     font-family: 'Cinzel', serif;
     color: var(--accent-gold);
     font-weight: bold;
-    font-size: 1rem;
+    font-size: 1.5rem;
     letter-spacing: 0.5px;
 }
 
 .combo-desc {
-    font-size: 0.72rem;
+    font-size: 0.9rem;
     color: var(--text-secondary);
-    margin-top: 3px;
+    margin-top: 5px;
     font-style: italic;
 }
 
 .combo-stats {
+    grid-area: stats;
     text-align: right;
     font-family: 'Metamorphous', cursive;
     min-width: 80px;
@@ -1661,7 +1700,7 @@ button:disabled {
 }
 
 .combo-base-val {
-    font-size: 0.95rem;
+    font-size: 1.4rem;
     color: #e8dfc0;
 }
 
@@ -1671,10 +1710,31 @@ button:disabled {
     font-weight: bold;
 }
 
-#btn-close-guide {
-    margin: 0 auto 20px;
-    position: relative;
-    z-index: 1;
+.close-modal-btn {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    background: transparent;
+    border: none;
+    color: var(--accent-gold);
+    font-size: 2.2rem;
+    font-family: Arial, sans-serif;
+    cursor: pointer;
+    z-index: 100;
+    transition: transform 0.2s ease, color 0.2s ease;
+    padding: 10px;
+    line-height: 1;
+    text-shadow: 0 0 10px rgba(199, 161, 59, 0.4);
+}
+
+.close-modal-btn::before {
+    content: '\2715'; /* Crochet de multiplication 'X' */
+}
+
+.close-modal-btn:hover {
+    color: #ffca28;
+    transform: scale(1.15) rotate(90deg);
+    text-shadow: 0 0 15px rgba(255, 202, 40, 0.6);
 }
 
 @media (max-width: 700px) {
@@ -1692,8 +1752,12 @@ button:disabled {
     }
 
     .combo-mini-card {
-        width: 26px;
-        height: 39px;
+        width: 70px;
+        height: 105px;
+        margin-right: -20px;
+    }
+    .combo-illustration {
+        padding: 5px;
     }
 
     .combo-rank {
