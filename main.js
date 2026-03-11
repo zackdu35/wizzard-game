@@ -346,11 +346,11 @@ function showMap() {
     // Animation d'entrée Premium
     const tl = gsap.timeline();
     tl.fromTo('#map-screen', { opacity: 0 }, { opacity: 1, duration: 0.8 })
-      .fromTo('#map-title-text', { y: -50, opacity: 0 }, { y: 0, opacity: 1, duration: 1, ease: 'power3.out' }, "-=0.4")
-      .fromTo('.map-node', { scale: 0, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.5, stagger: 0.05, ease: 'back.out(1.7)' }, "-=0.6")
-      .fromTo('.map-connector', { scaleX: 0, opacity: 0 }, { scaleX: 1, opacity: 1, duration: 0.4, stagger: 0.05 }, "-=0.6")
-      .fromTo('#map-node-info', { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5 }, "-=0.2")
-      .fromTo('#btn-enter-node', { scale: 0.8, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.5, ease: 'elastic.out(1, 0.5)' }, "-=0.3");
+        .fromTo('#map-title-text', { y: -50, opacity: 0 }, { y: 0, opacity: 1, duration: 1, ease: 'power3.out' }, "-=0.4")
+        .fromTo('.map-node', { scale: 0, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.5, stagger: 0.05, ease: 'back.out(1.7)' }, "-=0.6")
+        .fromTo('.map-connector', { scaleX: 0, opacity: 0 }, { scaleX: 1, opacity: 1, duration: 0.4, stagger: 0.05 }, "-=0.6")
+        .fromTo('#map-node-info', { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5 }, "-=0.2")
+        .fromTo('#btn-enter-node', { scale: 0.8, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.5, ease: 'elastic.out(1, 0.5)' }, "-=0.3");
 
     // Auto-save on map
     saveGame();
@@ -378,16 +378,16 @@ async function enterCurrentNode() {
         document.getElementById('enemy-attack-overlay').innerText = state.enemy.attack;
         document.getElementById('enemy-portrait').style.backgroundImage = `url('assets/${state.enemy.image}')`;
 
-        // Show malus if boss
-        if (currentNode.malus) {
-            const malusInfo = document.getElementById('boss-malus-info');
-            if (malusInfo) {
-                malusInfo.style.display = 'block';
-                malusInfo.innerText = currentNode.malus.description;
+        // Show malus if boss (skull icon + tooltip on hover via CSS)
+        const malusInfo = document.getElementById('boss-malus-info');
+        if (malusInfo) {
+            if (currentNode.malus) {
+                malusInfo.setAttribute('data-malus', currentNode.malus.description);
+                malusInfo.classList.add('has-malus');
+            } else {
+                malusInfo.setAttribute('data-malus', '');
+                malusInfo.classList.remove('has-malus');
             }
-        } else {
-            const malusInfo = document.getElementById('boss-malus-info');
-            if (malusInfo) malusInfo.style.display = 'none';
         }
 
         screenTransition(() => {
@@ -1366,7 +1366,7 @@ async function executeTurn() {
 
             const damageEl = document.getElementById('combo-damage-value');
             if (damageEl) {
-                gsap.to(damageEl, { color: '#a29bfe', textShadow: '0 0 20px rgba(120,80,255,0.6), 0 0 40px rgba(120,80,255,0.3)', duration: 0.3 });
+                gsap.to(damageEl, { color: '#00a8ff', textShadow: '0 0 20px rgba(0,168,255,0.6), 0 0 40px rgba(0,168,255,0.3)', duration: 0.3 });
                 const obj2 = { val: result.damage };
                 await gsap.to(obj2, {
                     val: finalDamage,
@@ -1437,8 +1437,8 @@ async function executeTurn() {
 
         // Mise à jour HP avec petit éclat rouge
         document.getElementById('player-hp-text').innerText = `${state.player.hp}`;
-        gsap.fromTo(['#player-hp-text', '.icon-hp-simple'], 
-            { color: '#ff4d4d', scale: 1.5, textShadow: '0 0 20px #ff0000' }, 
+        gsap.fromTo(['#player-hp-text', '.icon-hp-simple'],
+            { color: '#ff4d4d', scale: 1.5, textShadow: '0 0 20px #ff0000' },
             { color: '#ffffff', scale: 1, textShadow: '2px 2px 5px rgba(0,0,0,0.9), 0 0 15px rgba(0,0,0,0.7)', duration: 0.6, ease: "power2.out" }
         );
 
@@ -1970,21 +1970,38 @@ function spawnEnemyParticle() {
     const particle = document.createElement('div');
     particle.className = 'enemy-particle';
 
-    // Taille aléatoire (3-7px)
-    const size = 3 + Math.random() * 4;
+    // Taille aléatoire (4-10px) - Plus grand pour plus de visibilité
+    const size = 4 + Math.random() * 6;
     particle.style.width = size + 'px';
     particle.style.height = size + 'px';
 
-    // Couleurs braises : rouge, orange, ambre
-    const colors = [
+    // Couleurs par défaut (braises)
+    let colors = [
         'rgba(255, 80, 20, 0.8)',
         'rgba(255, 140, 40, 0.7)',
-        'rgba(255, 50, 10, 0.9)',
-        'rgba(255, 180, 60, 0.6)',
-        'rgba(200, 40, 10, 0.8)'
+        'rgba(255, 50, 10, 0.9)'
     ];
+
+    // Personnalisation selon le monstre
+    if (state.enemy && state.enemy.id) {
+        switch (state.enemy.id) {
+            case 'troll': colors = ['rgba(80, 120, 60, 0.8)', 'rgba(100, 140, 80, 0.7)', 'rgba(60, 90, 40, 0.9)']; break;
+            case 'spider': colors = ['rgba(60, 20, 80, 0.8)', 'rgba(80, 30, 100, 0.7)', 'rgba(40, 10, 60, 0.9)']; break;
+            case 'gnome': colors = ['rgba(160, 120, 60, 0.8)', 'rgba(180, 140, 80, 0.7)', 'rgba(140, 100, 40, 0.9)']; break;
+            case 'pixie': colors = ['rgba(60, 160, 255, 0.8)', 'rgba(100, 200, 255, 0.7)', 'rgba(40, 120, 220, 0.9)']; break;
+            case 'basilisk': colors = ['rgba(40, 180, 60, 0.8)', 'rgba(60, 220, 80, 0.7)', 'rgba(20, 140, 40, 0.9)', 'rgba(100, 255, 100, 0.6)']; break;
+            case 'boggart': colors = ['rgba(100, 100, 120, 0.8)', 'rgba(80, 80, 100, 0.7)', 'rgba(120, 120, 140, 0.9)', 'rgba(40, 40, 50, 0.8)']; break;
+            case 'hippogriff': colors = ['rgba(220, 220, 240, 0.8)', 'rgba(255, 255, 255, 0.7)', 'rgba(255, 215, 0, 0.9)']; break;
+            case 'skrewt': colors = ['rgba(255, 100, 40, 0.8)', 'rgba(255, 60, 20, 0.7)', 'rgba(200, 40, 10, 0.9)']; break;
+            case 'werewolf': colors = ['rgba(140, 30, 30, 0.8)', 'rgba(100, 90, 90, 0.7)', 'rgba(80, 20, 20, 0.9)']; break;
+            case 'dragon': colors = ['rgba(255, 120, 0, 0.8)', 'rgba(255, 60, 0, 0.7)', 'rgba(200, 40, 0, 0.9)']; break;
+            case 'centaur': colors = ['rgba(140, 100, 80, 0.8)', 'rgba(180, 140, 120, 0.7)', 'rgba(100, 60, 40, 0.9)']; break;
+            case 'dementor': colors = ['rgba(10, 20, 40, 0.8)', 'rgba(0, 0, 0, 0.9)', 'rgba(60, 80, 120, 0.6)', 'rgba(30, 50, 80, 0.8)']; break;
+            case 'voldemort': colors = ['rgba(20, 180, 60, 0.8)', 'rgba(10, 120, 40, 0.9)', 'rgba(0, 0, 0, 0.8)', 'rgba(40, 220, 80, 0.6)']; break;
+        }
+    }
     particle.style.background = colors[Math.floor(Math.random() * colors.length)];
-    particle.style.boxShadow = `0 0 ${size * 2}px ${particle.style.background}`;
+    particle.style.boxShadow = `0 0 ${size * 3}px ${particle.style.background}, 0 0 ${size * 5}px rgba(255,255,255,0.2)`;
 
     // Position de départ aléatoire (dans la zone du boss)
     const startX = 10 + Math.random() * 80; // 10% à 90% de la largeur
@@ -1999,7 +2016,7 @@ function spawnEnemyParticle() {
     gsap.fromTo(particle,
         { opacity: 0, scale: 0 },
         {
-            opacity: 0.8,
+            opacity: 1.0,
             scale: 1,
             duration: 0.3,
             onComplete: () => {
@@ -2023,10 +2040,10 @@ function startEnemyParticles() {
     for (let i = 0; i < 5; i++) {
         setTimeout(() => spawnEnemyParticle(), i * 200);
     }
-    // Continuous spawn
+    // Continuous spawn - Fréquence augmentée
     enemyParticleInterval = setInterval(() => {
         spawnEnemyParticle();
-    }, 400 + Math.random() * 300);
+    }, 150 + Math.random() * 150);
 }
 
 function stopEnemyParticles() {

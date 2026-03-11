@@ -177,6 +177,83 @@ body {
     transform-origin: center bottom;
 }
 
+/* Indicateur de pouvoir du Boss — Icône tête de mort + tooltip */
+#boss-malus-info {
+    position: absolute;
+    top: 18px;
+    /* Dépasse un peu en haut au centre */
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1500;
+    cursor: pointer;
+    display: none;
+    /* Caché par défaut, affiché via JS .has-malus */
+}
+
+#boss-malus-info.has-malus {
+    display: block;
+}
+
+/* Icône tête de mort visible (Asset PNG premium) */
+#boss-malus-info::before {
+    content: '';
+    display: block;
+    width: 44px;
+    height: 44px;
+    background-image: url('assets/boss_malus_skull.png');
+    background-size: cover;
+    background-position: center;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 60, 20, 0.4);
+    /* halo magique rouillé autour du badge */
+    box-shadow: 0 0 12px rgba(255, 30, 0, 0.5), inset 0 0 10px rgba(0, 0, 0, 0.8);
+    animation: skullPulse 2.5s ease-in-out infinite;
+    filter: drop-shadow(0px 4px 6px rgba(0, 0, 0, 0.7));
+}
+
+@keyframes skullPulse {
+
+    0%,
+    100% {
+        box-shadow: 0 0 8px rgba(255, 50, 20, 0.3), inset 0 0 10px rgba(0, 0, 0, 0.8);
+        border-color: rgba(255, 60, 20, 0.3);
+    }
+
+    50% {
+        box-shadow: 0 0 20px rgba(255, 50, 20, 0.8), inset 0 0 15px rgba(0, 0, 0, 0.9);
+        border-color: rgba(255, 120, 60, 0.7);
+    }
+}
+
+/* Tooltip texte au survol */
+#boss-malus-info::after {
+    content: attr(data-malus);
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 50%;
+    background: rgba(10, 5, 2, 0.95);
+    border: 1px solid rgba(199, 161, 59, 0.4);
+    color: rgba(232, 200, 122, 0.9);
+    padding: 8px 16px;
+    font-family: 'Metamorphous', cursive;
+    font-size: 0.75rem;
+    letter-spacing: 1px;
+    border-radius: 4px;
+    white-space: nowrap;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    opacity: 0;
+    pointer-events: none;
+    transform: translateX(-50%) translateY(-5px);
+    transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+#boss-malus-info:hover::after {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
 #enemy-portrait {
     position: absolute;
     top: 0;
@@ -249,7 +326,9 @@ body {
     position: absolute;
     border-radius: 50%;
     pointer-events: none;
-    filter: blur(1px);
+    filter: blur(0.5px) brightness(1.5);
+    mix-blend-mode: screen;
+    /* Effet de lumière additive */
 }
 
 /* --- EXPLOSION CARTE BOIS --- */
@@ -578,7 +657,7 @@ body {
     -webkit-backdrop-filter: blur(12px);
     border-radius: 12px;
     border: 1px solid rgba(199, 161, 59, 0.15);
-    box-shadow: 
+    box-shadow:
         0 10px 30px rgba(0, 0, 0, 0.6),
         inset 0 0 15px rgba(0, 0, 0, 0.3);
     z-index: 100;
@@ -596,38 +675,48 @@ body {
     font-family: 'Metamorphous', cursive;
     font-size: 2.8rem;
     color: #fff;
-    text-shadow: 2px 2px 5px rgba(0,0,0,0.9), 0 0 15px rgba(0,0,0,0.7);
+    text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.9), 0 0 15px rgba(0, 0, 0, 0.7);
     line-height: 1;
 }
 
 .stat-icon {
-    font-size: 2.6rem;
-    color: #fff;
-    text-shadow: 2px 2px 5px rgba(0,0,0,0.9), 0 0 15px rgba(0,0,0,0.7);
-    line-height: 1;
     width: 40px;
-    text-align: center;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    height: 40px;
+    display: inline-block;
+    border-radius: 50%;
+    border: 1px solid rgba(197, 160, 89, 0.5);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.8), inset 0 0 8px rgba(0, 0, 0, 0.6);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    filter: drop-shadow(2px 2px 5px rgba(0, 0, 0, 0.9));
+    flex-shrink: 0;
 }
 
-.icon-hp-simple::before { content: '\2665'; } /* Coeur ♥ */
-.icon-gold-simple::before { content: '\25C9'; } /* Bulle avec centre ◉ */
-.icon-crit-simple::before { content: '\2726'; } /* Etincelle ✦ */
+/* Coeur de rubis */
+.icon-hp-simple {
+    background-image: url('assets/hp_icon_premium.png');
+    background-size: 170%;
+    /* Zoom in slightly to make the heart more visible */
+}
 
-/* Tailles réduites pour Or et Critique (lignes 2 et 3) */
+/* Gallion (Golden coin) */
+.icon-gold-simple {
+    background-image: url('assets/gold_icon_premium.png');
+}
+
+/* Cicatrice de foudre */
+.icon-crit-simple {
+    background-image: url('assets/crit_icon_premium.png');
+}
+
+/* Tailles de texte réduites pour Or et Critique */
 .stat-row:not(:first-child) {
     gap: 12px;
 }
 
 .stat-row:not(:first-child) .stat-value {
     font-size: 2rem;
-}
-
-.stat-row:not(:first-child) .stat-icon {
-    font-size: 1.8rem;
-    width: 30px;
 }
 
 /* detected-combo moved below */
@@ -1423,7 +1512,8 @@ button:disabled {
     border-top-width: 6px;
     border-bottom-width: 6px;
     width: 100%;
-    max-width: 1400px; /* Assez large pour 2 pages */
+    max-width: 1400px;
+    /* Assez large pour 2 pages */
     max-height: 90vh;
     padding: 0;
     border-radius: 6px;
@@ -1450,12 +1540,12 @@ button:disabled {
     bottom: 0;
     background:
         /* Reliure ombrée centrale pour l'effet 2 pages */
-        linear-gradient(to right, 
-            transparent 47%, 
-            rgba(0, 0, 0, 0.3) 49%, 
-            rgba(0, 0, 0, 0.8) 50%, 
-            rgba(255, 255, 255, 0.1) 50.5%, 
-            rgba(0, 0, 0, 0.3) 51%, 
+        linear-gradient(to right,
+            transparent 47%,
+            rgba(0, 0, 0, 0.3) 49%,
+            rgba(0, 0, 0, 0.8) 50%,
+            rgba(255, 255, 255, 0.1) 50.5%,
+            rgba(0, 0, 0, 0.3) 51%,
             transparent 53%),
         /* Lignes de parchemin */
         repeating-linear-gradient(0deg,
@@ -1470,7 +1560,8 @@ button:disabled {
 .grimoire-scroll {
     width: 100%;
     overflow-y: auto;
-    padding: 25px 70px 40px; /* Marges réduites en haut */
+    padding: 25px 70px 40px;
+    /* Marges réduites en haut */
     position: relative;
     z-index: 1;
 }
@@ -1546,14 +1637,16 @@ button:disabled {
     width: 100%;
     list-style: none;
     column-count: 2;
-    column-gap: 120px; /* Grand espace pour la reliure */
-    column-rule: none; /* Remplacé par le faux spine central */
+    column-gap: 120px;
+    /* Grand espace pour la reliure */
+    column-rule: none;
+    /* Remplacé par le faux spine central */
     margin-bottom: 25px;
 }
 
 .combo-item {
     display: grid;
-    grid-template-areas: 
+    grid-template-areas:
         "rank info stats"
         ". cards cards";
     grid-template-columns: auto 1fr auto;
@@ -1566,7 +1659,8 @@ button:disabled {
     border-radius: 0;
     transition: all 0.2s ease;
     position: relative;
-    break-inside: avoid-column; /* Ne pas couper un combo entre deux pages */
+    break-inside: avoid-column;
+    /* Ne pas couper un combo entre deux pages */
     page-break-inside: avoid;
 }
 
@@ -1601,28 +1695,36 @@ button:disabled {
     display: flex;
     flex-shrink: 0;
     align-items: center;
-    padding: 10px 15px 10px 5px; /* Espace pour le hover effect */
+    padding: 10px 15px 10px 5px;
+    /* Espace pour le hover effect */
 }
 
 /* Style de carte premium façon "carte de collection" */
 .combo-mini-card {
-    width: 100px; /* Cartes géantes */
+    width: 100px;
+    /* Cartes géantes */
     height: 150px;
     background-size: 100% 100%;
     background-position: center;
-    border-radius: 6px; /* Coins légèrement arrondis pour suivre la taille */
-    border: 2px solid rgba(220, 185, 95, 0.4); /* Bordure dorée plus épaisse */
-    box-shadow: 
-        -4px 4px 10px rgba(0, 0, 0, 0.7), /* Ombre portée dense */
-        inset 0 0 10px rgba(0, 0, 0, 0.5), /* Ombre interne pour l'effet vintage */
-        0 0 0 1px #000; /* Liseré noir externe */
+    border-radius: 6px;
+    /* Coins légèrement arrondis pour suivre la taille */
+    border: 2px solid rgba(220, 185, 95, 0.4);
+    /* Bordure dorée plus épaisse */
+    box-shadow:
+        -4px 4px 10px rgba(0, 0, 0, 0.7),
+        /* Ombre portée dense */
+        inset 0 0 10px rgba(0, 0, 0, 0.5),
+        /* Ombre interne pour l'effet vintage */
+        0 0 0 1px #000;
+    /* Liseré noir externe */
     flex-shrink: 0;
     transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-    margin-right: -30px; /* Cartes superposées ! */
+    margin-right: -30px;
+    /* Cartes superposées ! */
     position: relative;
     /* Effet parchemin surbrillance */
     background-blend-mode: multiply;
-    background-color: #e6dac3; 
+    background-color: #e6dac3;
 }
 
 /* La dernière carte de la main n'est pas recouverte */
@@ -1633,27 +1735,66 @@ button:disabled {
 /* Effet de lueur et soulèvement au survol pour donner vie aux cartes */
 .combo-item:hover .combo-mini-card {
     border-color: rgba(255, 215, 0, 0.8);
-    box-shadow: 
+    box-shadow:
         -8px 8px 15px rgba(0, 0, 0, 0.6),
         0 0 15px rgba(255, 215, 0, 0.4);
 }
 
 /* Effet "éventail" au survol du combo entier */
-.combo-item:hover .combo-mini-card:nth-child(1) { transform: translateY(-5px) rotate(-6deg); z-index: 10; }
-.combo-item:hover .combo-mini-card:nth-child(2) { transform: translateY(-10px) rotate(-3deg); z-index: 11; }
-.combo-item:hover .combo-mini-card:nth-child(3) { transform: translateY(-14px) rotate(0deg); z-index: 12; }
-.combo-item:hover .combo-mini-card:nth-child(4) { transform: translateY(-10px) rotate(3deg); z-index: 13; }
-.combo-item:hover .combo-mini-card:nth-child(5) { transform: translateY(-5px) rotate(6deg); z-index: 14; }
+.combo-item:hover .combo-mini-card:nth-child(1) {
+    transform: translateY(-5px) rotate(-6deg);
+    z-index: 10;
+}
+
+.combo-item:hover .combo-mini-card:nth-child(2) {
+    transform: translateY(-10px) rotate(-3deg);
+    z-index: 11;
+}
+
+.combo-item:hover .combo-mini-card:nth-child(3) {
+    transform: translateY(-14px) rotate(0deg);
+    z-index: 12;
+}
+
+.combo-item:hover .combo-mini-card:nth-child(4) {
+    transform: translateY(-10px) rotate(3deg);
+    z-index: 13;
+}
+
+.combo-item:hover .combo-mini-card:nth-child(5) {
+    transform: translateY(-5px) rotate(6deg);
+    z-index: 14;
+}
 
 /* Cas avec 4 cartes */
-.combo-illustration > :nth-child(4):last-child { margin-right: 0; }
-.combo-item:hover .combo-illustration > :nth-child(4):last-child { transform: translateY(-5px) rotate(4deg); z-index: 13; }
+.combo-illustration> :nth-child(4):last-child {
+    margin-right: 0;
+}
+
+.combo-item:hover .combo-illustration> :nth-child(4):last-child {
+    transform: translateY(-5px) rotate(4deg);
+    z-index: 13;
+}
+
 /* Cas avec 3 cartes */
-.combo-illustration > :nth-child(3):last-child { margin-right: 0; }
-.combo-item:hover .combo-illustration > :nth-child(3):last-child { transform: translateY(-7px) rotate(4deg); z-index: 12; }
+.combo-illustration> :nth-child(3):last-child {
+    margin-right: 0;
+}
+
+.combo-item:hover .combo-illustration> :nth-child(3):last-child {
+    transform: translateY(-7px) rotate(4deg);
+    z-index: 12;
+}
+
 /* Cas avec 2 cartes */
-.combo-illustration > :nth-child(2):last-child { margin-right: 0; }
-.combo-item:hover .combo-illustration > :nth-child(2):last-child { transform: translateY(-5px) rotate(3deg); z-index: 11; }
+.combo-illustration> :nth-child(2):last-child {
+    margin-right: 0;
+}
+
+.combo-item:hover .combo-illustration> :nth-child(2):last-child {
+    transform: translateY(-5px) rotate(3deg);
+    z-index: 11;
+}
 
 .combo-info {
     grid-area: info;
@@ -1719,7 +1860,8 @@ button:disabled {
 }
 
 .close-modal-btn::before {
-    content: '\2715'; /* Crochet de multiplication 'X' */
+    content: '\2715';
+    /* Crochet de multiplication 'X' */
 }
 
 .close-modal-btn:hover {
@@ -1747,6 +1889,7 @@ button:disabled {
         height: 105px;
         margin-right: -20px;
     }
+
     .combo-illustration {
         padding: 5px;
     }
@@ -1763,16 +1906,16 @@ button:disabled {
 /* --- CRITICAL CARD SYSTEM --- */
 .card-container.card-critical {
     box-shadow:
-        0 0 20px 6px rgba(120, 80, 255, 0.6),
-        0 0 40px 12px rgba(120, 80, 255, 0.3);
-    border-color: #a29bfe;
+        0 0 20px 6px rgba(0, 168, 255, 0.6),
+        0 0 40px 12px rgba(0, 168, 255, 0.3);
+    border-color: #00a8ff;
 }
 
 .card-container.card-critical.selected {
     box-shadow:
-        0 0 25px 8px rgba(120, 80, 255, 0.8),
-        0 0 50px 15px rgba(120, 80, 255, 0.4);
-    border-color: #a29bfe;
+        0 0 25px 8px rgba(0, 168, 255, 0.8),
+        0 0 50px 15px rgba(0, 168, 255, 0.4);
+    border-color: #00a8ff;
 }
 
 .crit-indicator {
@@ -1783,9 +1926,9 @@ button:disabled {
     font-family: 'Cinzel', serif;
     font-size: 0.85rem;
     font-weight: bold;
-    color: #a29bfe;
+    color: #00a8ff;
     text-shadow:
-        0 0 10px rgba(120, 80, 255, 0.8),
+        0 0 10px rgba(0, 168, 255, 0.8),
         0 2px 4px rgba(0, 0, 0, 0.8);
     pointer-events: none;
     z-index: 200;
@@ -1813,10 +1956,10 @@ button:disabled {
     font-family: 'Cinzel', serif;
     font-size: 1.8rem;
     font-weight: bold;
-    color: #a29bfe;
+    color: #00a8ff;
     text-shadow:
-        0 0 15px rgba(120, 80, 255, 0.8),
-        0 0 30px rgba(120, 80, 255, 0.4),
+        0 0 15px rgba(0, 168, 255, 0.8),
+        0 0 30px rgba(0, 168, 255, 0.4),
         0 2px 4px rgba(0, 0, 0, 0.8);
     pointer-events: none;
     z-index: 201;
@@ -1824,8 +1967,8 @@ button:disabled {
 }
 
 #label-crit {
-    background: radial-gradient(circle, rgba(162, 155, 254, 0.5), rgba(120, 80, 255, 0.2));
-    border-color: #a29bfe;
+    background: radial-gradient(circle, rgba(72, 219, 251, 0.5), rgba(0, 168, 255, 0.2));
+    border-color: #00a8ff;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -1833,9 +1976,10 @@ button:disabled {
 }
 
 #label-crit::after {
-    content: '\2726';
-    color: #a29bfe;
-    filter: drop-shadow(0 0 4px rgba(120, 80, 255, 0.8));
+    content: '\03DE';
+    color: #00a8ff;
+    filter: drop-shadow(0 0 6px rgba(0, 168, 255, 0.8));
+    transform: scale(1.1);
 }
 
 /* --- CARD SCORING ANIMATION (Demon's Hand style) --- */
@@ -2002,7 +2146,8 @@ button:disabled {
     background: transparent;
     display: none;
     flex-direction: column;
-    justify-content: center; /* Centrage vertical total */
+    justify-content: center;
+    /* Centrage vertical total */
     align-items: center;
     z-index: 1400;
     padding: 40px 20px;
@@ -2017,7 +2162,8 @@ button:disabled {
     background-clip: text;
     -webkit-text-fill-color: transparent;
     letter-spacing: 15px;
-    margin-bottom: 50px; /* Un peu moins de marge sous le titre */
+    margin-bottom: 50px;
+    /* Un peu moins de marge sous le titre */
     font-weight: 700;
     text-transform: uppercase;
     text-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
@@ -2028,7 +2174,9 @@ button:disabled {
 }
 
 @keyframes goldShimmer {
-    to { background-position: 200% center; }
+    to {
+        background-position: 200% center;
+    }
 }
 
 #map-title-text::after {
@@ -2054,7 +2202,8 @@ button:disabled {
 #map-nodes-container {
     display: flex;
     align-items: center;
-    justify-content: center; /* Centrage horizontal des colonnes */
+    justify-content: center;
+    /* Centrage horizontal des colonnes */
     gap: 0;
     margin-bottom: 50px;
     overflow-x: auto;
@@ -2082,8 +2231,15 @@ button:disabled {
 }
 
 @keyframes nodeFloat {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-8px); }
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-8px);
+    }
 }
 
 .map-node-icon {
@@ -2107,15 +2263,18 @@ button:disabled {
 
 /* Croix rouge Premium style HP */
 .map-node.completed::after {
-    content: '\2715'; /* Symbole de croix typographique */
+    content: '\2715';
+    /* Symbole de croix typographique */
     position: absolute;
-    top: 30px; /* Centre de l'icône de 60px */
+    top: 30px;
+    /* Centre de l'icône de 60px */
     left: 50%;
     transform: translate(-50%, -50%) rotate(12deg);
     font-size: 4rem;
-    color: #8c1010; /* Rouge sang sombre */
+    color: #8c1010;
+    /* Rouge sang sombre */
     font-weight: 900;
-    text-shadow: 
+    text-shadow:
         0 0 15px rgba(0, 0, 0, 0.7),
         2px 2px 0px rgba(60, 0, 0, 0.5);
     opacity: 0.85;
@@ -2228,7 +2387,7 @@ button:disabled {
     background: linear-gradient(135deg, #1a150f 0%, #2c2419 100%);
     border: 2px solid var(--accent-gold);
     color: var(--accent-gold);
-    box-shadow: 
+    box-shadow:
         0 10px 25px rgba(0, 0, 0, 0.5),
         inset 0 0 15px rgba(199, 161, 59, 0.2);
     transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
