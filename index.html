@@ -196,15 +196,58 @@
     </div>
 
     <div id="game-over-overlay">
-        <h2 id="game-over-title"></h2>
-        <p id="game-over-message"></p>
-        <div id="run-stats" style="display:none;">
-            <p class="stat-line">Ennemis vaincus: <span id="stat-enemies">0</span></p>
-            <p class="stat-line">Degats totaux: <span id="stat-damage">0</span></p>
-            <p class="stat-line">Galleons gagnes: <span id="stat-gold">0</span></p>
-            <p class="stat-line">Boss vaincu: <span id="stat-boss">---</span></p>
+        <div class="game-over-content">
+            <div class="victory-ornament v-orn-top-l"></div>
+            <div class="victory-ornament v-orn-top-r"></div>
+            <div class="victory-ornament v-orn-bot-l"></div>
+            <div class="victory-ornament v-orn-bot-r"></div>
+
+            <div id="game-over-icon"></div>
+            <h2 id="game-over-title"></h2>
+            <p id="game-over-message"></p>
+
+            <div id="run-stats">
+                <div class="stat-box">
+                    <span class="stat-label">Ennemis vaincus</span>
+                    <span class="stat-val" id="stat-enemies">0</span>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-label">Dégâts totaux</span>
+                    <span class="stat-val" id="stat-damage">0</span>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-label">Galleons gagnés</span>
+                    <span class="stat-val" id="stat-gold">0</span>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-label">Dernier Boss</span>
+                    <span class="stat-val" id="stat-boss">---</span>
+                </div>
+            </div>
+
+            <button id="btn-restart" class="restart-btn" onclick="clearSave(); location.reload()"></button>
         </div>
-        <button id="btn-restart" class="restart-btn" onclick="clearSave(); location.reload()"></button>
+    </div>
+
+    <!-- Victory Overlay (Mid-run) -->
+    <div id="victory-overlay" class="modal-hidden">
+        <div id="victory-particles-container"></div>
+        <div class="victory-content">
+            <div class="victory-ornament v-orn-top-l"></div>
+            <div class="victory-ornament v-orn-top-r"></div>
+            <div class="victory-ornament v-orn-bot-l"></div>
+            <div class="victory-ornament v-orn-bot-r"></div>
+            
+            <h1 id="victory-title">VICTOIRE !</h1>
+            <div class="victory-rewards">
+                <span id="victory-gold-reward">+10</span>
+                <div class="victory-coin-premium"></div>
+            </div>
+            <button id="btn-victory-continue" class="primary-btn">
+                <span class="btn-shine"></span>
+                CONTINUER
+            </button>
+        </div>
     </div>
 
     <!-- Diagon Alley -->

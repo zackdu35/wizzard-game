@@ -4,7 +4,7 @@ const DEV_MODE = true; // Passez à false pour désactiver le mode développeur
 // --- POOL D'ENNEMIS ---
 const ENEMY_POOL = [
     // Tier 1 (nodes 1-2): low HP, low attack
-    { id: "troll", hp: 200, attack: 10, tier: 1, image: "enemy_troll.webp" },
+    { id: "troll", hp: 200, attack: 10, tier: 1, image: "ennemy-troll.png", bg: "toilet-bg.png" },
     { id: "spider", hp: 180, attack: 12, tier: 1, image: "giant-spider-ennemy.webp", bg: "bg-foret-interdite.png" },
     { id: "gnome", hp: 150, attack: 8, tier: 1, image: "gnome-ennemy.png" },
     { id: "pixie", hp: 170, attack: 11, tier: 1, image: "Cornish Pixie.png" },
@@ -14,9 +14,9 @@ const ENEMY_POOL = [
     { id: "hippogriff", hp: 320, attack: 14, tier: 2, image: "Furious Hippogriff.png", bg: "bg-foret-interdite.png" },
     { id: "skrewt", hp: 260, attack: 20, tier: 2, image: "Blast-Ended Skrewt.png" },
     // Tier 3 (nodes 7-8): high HP, high attack
-    { id: "werewolf", hp: 400, attack: 22, tier: 3, image: "werefolf-ennemy.png", bg: "bg-foret-interdite.png" },
-    { id: "dragon", hp: 450, attack: 25, tier: 3, image: "Hungarian Horntail.png", bg: "bg-foret-interdite.png" },
-    { id: "centaur", hp: 420, attack: 20, tier: 3, image: "enemy_troll.webp", bg: "bg-foret-interdite.png" },
+    { id: "werewolf", hp: 400, attack: 22, tier: 3, image: "werefolf-ennemy.png", bg: "loup-garou-bg.png" },
+    { id: "dragon", hp: 450, attack: 25, tier: 3, image: "Hungarian Horntail.png", bg: "dragon-map-bg.png" },
+    { id: "centaur", hp: 420, attack: 20, tier: 3, image: "ennemy-troll.png", bg: "bg-foret-interdite.png" },
 ];
 
 const BOSS_POOL = [
@@ -24,7 +24,7 @@ const BOSS_POOL = [
         id: "dementor",
         hp: 800,
         attack: 30,
-        image: "enemy_troll.webp", // Default for now
+        image: "ennemy-troll.png", // Default for now
         malus: {
             id: "no_ravenclaw",
             description: "Les cartes de Serdaigle ne font aucun degat.",
@@ -35,7 +35,7 @@ const BOSS_POOL = [
         id: "voldemort",
         hp: 1000,
         attack: 35,
-        image: "enemy_troll.webp",
+        image: "ennemy-troll.png",
         malus: {
             id: "no_low_cards",
             description: "Les cartes de rang 2 a 6 ne font aucun degat.",
@@ -46,7 +46,7 @@ const BOSS_POOL = [
         id: "bellatrix",
         hp: 700,
         attack: 40,
-        image: "enemy_troll.webp",
+        image: "ennemy-troll.png",
         malus: {
             id: "no_hufflepuff",
             description: "Les cartes de Poufsouffle ne font aucun degat.",
@@ -369,14 +369,22 @@ async function enterCurrentNode() {
         // Set current enemy from node data
         state.enemy = { ...currentNode.enemy };
 
-        // Update background
-        const bgImage = state.enemy.bg || 'Gemini_Generated_Image_446xcq446xcq446x.webp';
+        // Update background and portrait dynamically from the pools to ensure latest assets are used
+        let latestBg = state.enemy.bg;
+        let latestImage = state.enemy.image;
+        const poolEnemy = ENEMY_POOL.find(e => e.id === state.enemy.id) || BOSS_POOL.find(b => b.id === state.enemy.id);
+        if (poolEnemy) {
+            if (poolEnemy.bg) latestBg = poolEnemy.bg;
+            if (poolEnemy.image) latestImage = poolEnemy.image;
+        }
+        
+        const bgImage = latestBg || 'Gemini_Generated_Image_446xcq446xcq446x.webp';
         mainBg.style.backgroundImage = `url('assets/${bgImage}')`;
 
         // Update enemy zone UI
         document.getElementById('enemy-hp-overlay').innerText = state.enemy.hp;
         document.getElementById('enemy-attack-overlay').innerText = state.enemy.attack;
-        document.getElementById('enemy-portrait').style.backgroundImage = `url('assets/${state.enemy.image}')`;
+        document.getElementById('enemy-portrait').style.backgroundImage = `url('assets/${latestImage}')`;
 
         // Show malus if boss (skull icon + tooltip on hover via CSS)
         const malusInfo = document.getElementById('boss-malus-info');
@@ -479,22 +487,10 @@ function advanceToNextNode() {
 
 function showRunVictoryScreen() {
     clearSave();
-    const overlay = document.getElementById('game-over-overlay');
-    overlay.style.display = 'flex';
-    overlay.style.opacity = 0;
+    showEndOverlay(true);
+    // Personaliser pour la victoire totale
     document.getElementById('game-over-title').innerText = "VICTOIRE TOTALE !";
-    document.getElementById('game-over-title').className = "win";
-    document.getElementById('game-over-message').innerText = "Vous avez complete le chemin du sorcier.";
-
-    // Show stats
-    const statsDiv = document.getElementById('run-stats');
-    statsDiv.style.display = 'block';
-    document.getElementById('stat-enemies').innerText = state.run.stats.enemiesDefeated;
-    document.getElementById('stat-damage').innerText = state.run.stats.totalDamageDealt;
-    document.getElementById('stat-gold').innerText = state.run.stats.totalGoldEarned;
-    document.getElementById('stat-boss').innerText = t(`enemies.${state.run.stats.bossId}`);
-
-    gsap.to(overlay, { opacity: 1, duration: 1 });
+    document.getElementById('game-over-message').innerText = "Vous avez complété le chemin du sorcier.";
 }
 
 // --- INITIALISATION ---
@@ -909,6 +905,7 @@ function initGame() {
     // Map & Dortoir
     document.getElementById('btn-enter-node').addEventListener('click', () => enterCurrentNode());
     document.getElementById('btn-dortoir-continue').addEventListener('click', () => continueFromDortoir());
+    document.getElementById('btn-victory-continue').addEventListener('click', () => continueFromVictory());
 
     // Title & Difficulty
     document.getElementById('btn-new-game').addEventListener('click', () => showDifficultyScreen());
@@ -972,6 +969,8 @@ function updateLocalizedUI() {
     document.getElementById('sanctuary-title').innerText = t('ui.sanctuary_title');
     document.getElementById('sanctuary-gold-label').innerText = t('ui.galleons');
     document.getElementById('btn-continue').innerText = t('ui.continue_adventure');
+    document.getElementById('victory-title').innerText = t('ui.victory');
+    document.getElementById('btn-victory-continue').innerText = t('ui.continue_game');
 
     // Title & Difficulty screen texts
     const tn = document.getElementById('title-game-name');
@@ -1104,7 +1103,7 @@ function createCardElement(card, index) {
     const cardImagePath = `assets/card_${card.suit}_${card.rank}.webp`;
 
     wrapper.innerHTML = `
-        <div class="card-container ${state.selectedIndices.includes(index) ? 'selected' : ''}">
+        <div class="card-container ${card.suit} ${state.selectedIndices.includes(index) ? 'selected' : ''}">
             <div class="card-layer full-image" style="background-image: url('${cardImagePath}');"></div>
         </div>
     `;
@@ -1366,7 +1365,7 @@ async function executeTurn() {
 
             const damageEl = document.getElementById('combo-damage-value');
             if (damageEl) {
-                gsap.to(damageEl, { color: '#00a8ff', textShadow: '0 0 20px rgba(0,168,255,0.6), 0 0 40px rgba(0,168,255,0.3)', duration: 0.3 });
+                gsap.to(damageEl, { color: '#ffffff', textShadow: '0 0 20px rgba(255,0,255,0.6), 0 0 40px rgba(0,242,254,0.4)', duration: 0.3 });
                 const obj2 = { val: result.damage };
                 await gsap.to(obj2, {
                     val: finalDamage,
@@ -1484,6 +1483,7 @@ async function executeTurn() {
 }
 
 // --- EXPLOSION CARTE BOIS ENNEMI ---
+// --- EXPLOSION CARTE BOIS ENNEMI PREMIUM ---
 async function animateBossExplosion() {
     const bossCard = document.getElementById('boss-card');
     if (!bossCard) return;
@@ -1492,169 +1492,143 @@ async function animateBossExplosion() {
     const centerX = rect.left + rect.width / 2;
     const centerY = rect.top + rect.height / 2;
 
-    // Créer le conteneur d'explosion (plein écran, sur le body pour éviter les transforms)
     const explosionContainer = document.createElement('div');
     explosionContainer.className = 'explosion-container';
     document.body.appendChild(explosionContainer);
 
-    // --- Phase 1: Tremblement + fissures ---
+    // --- Phase 1: Accumulation (The "Hold") ---
     const tl = gsap.timeline();
-
-    // Tremblement intensif du boss
-    tl.to(bossCard, {
-        x: 8, duration: 0.04, repeat: 15, yoyo: true,
-        ease: "none",
-        onComplete: () => gsap.set(bossCard, { x: 0 })
-    });
-
-    // Flash blanc d'énergie
-    tl.to(bossCard, {
-        filter: 'brightness(3) saturate(0)',
-        duration: 0.15,
-        ease: "power2.in"
-    }, "-=0.3");
+    tl.to(bossCard, { x: 15, duration: 0.02, repeat: 25, yoyo: true, ease: "none" });
+    tl.to(bossCard, { 
+        filter: 'brightness(8) saturate(0)', 
+        scale: 1.15, 
+        duration: 0.5, 
+        ease: "power4.in" 
+    }, 0.1);
 
     await tl;
 
-    // --- Phase 2: Cacher le boss et spawner les fragments ---
+    // --- Phase 2: L'IMPACT (The "Snap") ---
     gsap.set(bossCard, { visibility: 'hidden', filter: 'none' });
 
-    // Créer les fragments de bois
-    const FRAGMENT_COUNT = 24;
-    const SPLINTER_COUNT = 40;
-    const fragments = [];
+    // Flash Blanc Aveuglant progressif
+    const globalLight = document.createElement('div');
+    globalLight.className = 'explosion-light';
+    document.body.appendChild(globalLight);
+    gsap.to(globalLight, { opacity: 1, duration: 0.05, onComplete: () => {
+        gsap.to(globalLight, { opacity: 0, duration: 0.8, ease: "power2.out", onComplete: () => globalLight.remove() });
+    }});
 
-    // Couleurs bois
-    const woodColors = [
-        '#8B6914', '#A0522D', '#6B4226', '#8B7355',
-        '#DEB887', '#D2B48C', '#C4A35A', '#5C4033',
-        '#3E2723', '#4E3524', '#7B5B3A', '#9C7A3C'
-    ];
+    // Shockwaves multi-couches
+    [800, 1200, 1600].forEach((size, i) => {
+        const sw = document.createElement('div');
+        sw.className = 'explosion-shockwave';
+        sw.style.cssText = `left: ${centerX}px; top: ${centerY}px; width: 40px; height: 40px; opacity: 0.8;`;
+        explosionContainer.appendChild(sw);
+        gsap.to(sw, {
+            width: size, height: size,
+            opacity: 0,
+            duration: 0.6 + i * 0.2,
+            ease: "power3.out",
+            delay: i * 0.05
+        });
+    });
 
-    // Fragments principaux (morceaux de la carte)
-    for (let i = 0; i < FRAGMENT_COUNT; i++) {
+    const elements = [];
+    const woodColors = [['#8B6914', '#5C4033'], ['#A0522D', '#3E2723'], ['#6B4226', '#1A0F0A']];
+
+    // 1. Débris de bois texturés
+    for (let i = 0; i < 40; i++) {
         const frag = document.createElement('div');
         frag.className = 'wood-fragment';
-
-        const w = 20 + Math.random() * 60;
-        const h = 15 + Math.random() * 50;
-        const color = woodColors[Math.floor(Math.random() * woodColors.length)];
-        const colorDark = woodColors[Math.floor(Math.random() * woodColors.length)];
-
-        // Position initiale = dans la zone du boss
+        const w = 10 + Math.random() * 40;
+        const h = 5 + Math.random() * 30;
+        const colors = woodColors[Math.floor(Math.random() * woodColors.length)];
         const startX = rect.left + Math.random() * rect.width;
         const startY = rect.top + Math.random() * rect.height;
 
         frag.style.cssText = `
             width: ${w}px; height: ${h}px;
             left: ${startX}px; top: ${startY}px;
-            background: linear-gradient(${Math.random() * 360}deg, ${color}, ${colorDark});
-            clip-path: polygon(
-                ${10 + Math.random() * 20}% ${Math.random() * 15}%,
-                ${60 + Math.random() * 40}% ${Math.random() * 20}%,
-                ${80 + Math.random() * 20}% ${40 + Math.random() * 30}%,
-                ${50 + Math.random() * 50}% ${85 + Math.random() * 15}%,
-                ${Math.random() * 25}% ${60 + Math.random() * 40}%
-            );
+            background: linear-gradient(${Math.random()*360}deg, ${colors[0]}, ${colors[1]});
+            clip-path: polygon(${Math.random()*30}% 0%, 100% ${Math.random()*30}%, ${70+Math.random()*30}% 100%, 0% ${70+Math.random()*30}%);
         `;
-
         explosionContainer.appendChild(frag);
-        fragments.push({ el: frag, startX, startY });
+        elements.push({ el: frag, x: startX, y: startY, type: 'wood' });
     }
 
-    // Échardes fines (petits éclats)
-    for (let i = 0; i < SPLINTER_COUNT; i++) {
-        const splinter = document.createElement('div');
-        splinter.className = 'wood-splinter';
-
-        const len = 8 + Math.random() * 30;
-        const thick = 1.5 + Math.random() * 3;
-        const color = woodColors[Math.floor(Math.random() * woodColors.length)];
-
-        const startX = rect.left + Math.random() * rect.width;
-        const startY = rect.top + Math.random() * rect.height;
-
-        splinter.style.cssText = `
-            width: ${len}px; height: ${thick}px;
-            left: ${startX}px; top: ${startY}px;
-            background: ${color};
-            transform: rotate(${Math.random() * 360}deg);
-        `;
-
-        explosionContainer.appendChild(splinter);
-        fragments.push({ el: splinter, startX, startY });
+    // 2. Étincelles de haute vélocité
+    for (let i = 0; i < 60; i++) {
+        const spark = document.createElement('div');
+        spark.className = 'spark';
+        spark.style.left = centerX + 'px';
+        spark.style.top = centerY + 'px';
+        explosionContainer.appendChild(spark);
+        elements.push({ el: spark, x: centerX, y: centerY, type: 'spark' });
     }
 
-    // Flash d'impact central
-    const flash = document.createElement('div');
-    flash.className = 'explosion-flash';
-    flash.style.cssText = `left: ${centerX}px; top: ${centerY}px;`;
-    explosionContainer.appendChild(flash);
-
-    // Nuage de poussière
-    const dustCount = 12;
-    for (let i = 0; i < dustCount; i++) {
+    // 3. Fumée volumétrique (Dust)
+    for (let i = 0; i < 20; i++) {
         const dust = document.createElement('div');
         dust.className = 'explosion-dust';
         dust.style.cssText = `left: ${centerX}px; top: ${centerY}px;`;
         explosionContainer.appendChild(dust);
+        elements.push({ el: dust, type: 'smoke' });
     }
 
-    // --- Phase 3: EXPLOSION ! ---
-    const explTl = gsap.timeline();
+    // --- Phase 3: Physics & Motion ---
+    const mainTl = gsap.timeline();
 
     // Flash central
-    explTl.fromTo(flash,
-        { scale: 0, opacity: 1 },
-        { scale: 4, opacity: 0, duration: 0.6, ease: "power2.out" }
-    );
+    const centralFlash = document.createElement('div');
+    centralFlash.className = 'explosion-flash';
+    centralFlash.style.cssText = `left: ${centerX}px; top: ${centerY}px;`;
+    explosionContainer.appendChild(centralFlash);
+    mainTl.fromTo(centralFlash, { scale: 0, opacity: 1 }, { scale: 8, opacity: 0, duration: 0.8, ease: "power4.out" }, 0);
 
-    // Secousse écran
-    explTl.to("#game-container", {
-        x: 15, duration: 0.04, repeat: 12, yoyo: true,
+    // Camera Shake
+    mainTl.to("#game-container", {
+        x: 25, y: 15, duration: 0.04, repeat: 12, yoyo: true,
         ease: "none",
-        onComplete: () => gsap.set("#game-container", { x: 0 })
+        onComplete: () => gsap.set("#game-container", { x: 0, y: 0 })
     }, 0);
 
-    // Éjecter les fragments
-    fragments.forEach(({ el, startX, startY }) => {
-        const angle = Math.atan2(startY - centerY, startX - centerX) + (Math.random() - 0.5) * 1.2;
-        const force = 200 + Math.random() * 500;
-        const destX = Math.cos(angle) * force;
-        const destY = Math.sin(angle) * force - 100 + Math.random() * 200; // Gravité
-        const spin = -720 + Math.random() * 1440;
-
-        explTl.to(el, {
-            x: destX,
-            y: destY,
-            rotation: spin,
-            opacity: 0,
-            scale: 0.3 + Math.random() * 0.5,
-            duration: 0.8 + Math.random() * 0.6,
-            ease: "power2.out",
-        }, Math.random() * 0.1);
-    });
-
-    // Nuages de poussière
-    const dusts = explosionContainer.querySelectorAll('.explosion-dust');
-    dusts.forEach((d, i) => {
-        const angle = (i / dustCount) * Math.PI * 2 + Math.random() * 0.5;
-        explTl.fromTo(d,
-            { scale: 0.3, opacity: 0.8 },
-            {
-                x: Math.cos(angle) * (120 + Math.random() * 180),
-                y: Math.sin(angle) * (120 + Math.random() * 180),
-                scale: 2 + Math.random() * 2,
+    // Éjection
+    elements.forEach((obj) => {
+        if (obj.type === 'smoke') {
+            const angle = Math.random() * Math.PI * 2;
+            const dist = 100 + Math.random() * 250;
+            mainTl.to(obj.el, {
+                x: Math.cos(angle) * dist,
+                y: Math.sin(angle) * dist - 100,
+                scale: 5 + Math.random() * 5,
                 opacity: 0,
-                duration: 1 + Math.random() * 0.5,
-                ease: "power1.out"
-            }, 0.05
-        );
+                duration: 2 + Math.random() * 1,
+                ease: "power2.out"
+            }, 0.02);
+            return;
+        }
+
+        const angle = obj.type === 'spark' ? Math.random() * Math.PI * 2 : Math.atan2(obj.y - centerY, obj.x - centerX) + (Math.random()-0.5);
+        const force = obj.type === 'spark' ? 500 + Math.random() * 1000 : 300 + Math.random() * 600;
+        const duration = obj.type === 'spark' ? 0.3 + Math.random() * 0.5 : 1.5 + Math.random() * 1;
+        
+        mainTl.to(obj.el, {
+            x: Math.cos(angle) * force,
+            y: Math.sin(angle) * force + (obj.type === 'wood' ? 400 : 0), // Gravité pour le bois uniquement
+            rotation: (Math.random() - 0.5) * 2000,
+            opacity: 0,
+            scale: 0.1,
+            duration: duration,
+            ease: "power3.out"
+        }, 0);
     });
 
-    await explTl;
+    await mainTl;
 
-    // Nettoyage
+    // --- Phase 4: Smooth Aftermath Transition ---
+    // On réduit le temps d'attente pour que ça paraisse moins long
+    await gsap.to(explosionContainer, { opacity: 0, duration: 0.4, ease: "power1.inOut" });
     explosionContainer.remove();
 }
 
@@ -1673,20 +1647,95 @@ async function victorySequence() {
     // Explosion de la carte en bois !
     await animateBossExplosion();
 
-    await new Promise(r => setTimeout(r, 500));
+    // Afficher l'overlay de VICTOIRE (Premium) au lieu de passer à la suite en plein milieu
+    const overlay = document.getElementById('victory-overlay');
+    const goldText = document.getElementById('victory-gold-reward');
+    goldText.innerText = `+${gains} 🪙`;
+    
+    overlay.classList.remove('modal-hidden');
+    overlay.classList.add('modal-visible');
+    
+    // Animation d'entrée pour l'overlay
+    gsap.fromTo('.victory-content', 
+        { scale: 0.5, opacity: 0, rotationY: 90 },
+        { scale: 1, opacity: 1, rotationY: 0, duration: 1, ease: "expo.out" }
+    );
 
-    // Fade out game container, then go to map
+    // Ornaments animation
+    gsap.fromTo('.victory-ornament',
+        { opacity: 0, scale: 2 },
+        { opacity: 0.6, scale: 1, duration: 1, delay: 0.5, stagger: 0.2, ease: "back.out(2)" }
+    );
+    
+    // Lueur pulsante sur le texte victoire
+    gsap.fromTo('#victory-title', 
+        { filter: 'drop-shadow(0 0 10px rgba(199,161,59,0.4))' },
+        { filter: 'drop-shadow(0 0 40px rgba(199,161,59,0.9))', duration: 1.5, repeat: -1, yoyo: true }
+    );
+
+    // Start background particles
+    startVictoryParticles();
+}
+
+let victoryParticlesInterval = null;
+
+function startVictoryParticles() {
+    clearVictoryParticles();
+    const container = document.getElementById('victory-particles-container');
+    if (!container) return;
+
+    victoryParticlesInterval = setInterval(() => {
+        const p = document.createElement('div');
+        p.className = 'victory-particle';
+        const size = 2 + Math.random() * 4;
+        const startX = Math.random() * window.innerWidth;
+        const startY = window.innerHeight + 10;
+        
+        p.style.width = size + 'px';
+        p.style.height = size + 'px';
+        p.style.left = startX + 'px';
+        p.style.top = startY + 'px';
+        p.style.boxShadow = `0 0 ${size*2}px rgba(255,255,255,0.8)`;
+        
+        container.appendChild(p);
+        
+        gsap.to(p, {
+            y: -(window.innerHeight + 50),
+            x: (Math.random() - 0.5) * 200,
+            opacity: 0,
+            duration: 3 + Math.random() * 3,
+            ease: "none",
+            onComplete: () => p.remove()
+        });
+    }, 100);
+}
+
+function clearVictoryParticles() {
+    if (victoryParticlesInterval) clearInterval(victoryParticlesInterval);
+    const container = document.getElementById('victory-particles-container');
+    if (container) container.innerHTML = '';
+}
+
+function continueFromVictory() {
+    clearVictoryParticles();
+    const overlay = document.getElementById('victory-overlay');
     const bossCard = document.getElementById('boss-card');
+    
+    state.isAnimating = true;
+    
     const tl = gsap.timeline();
-    tl.to("#game-container", { opacity: 0, duration: 0.8 });
+    tl.to('.victory-content', { scale: 0.9, opacity: 0, duration: 0.4, ease: "power2.in" });
+    tl.to("#game-container", { opacity: 0, duration: 0.6 }, "-=0.2");
     tl.add(() => {
+        overlay.classList.remove('modal-visible');
+        overlay.classList.add('modal-hidden');
         // Restaurer le boss card pour le prochain combat
         if (bossCard) {
             gsap.set(bossCard, { visibility: 'visible', filter: 'none', clearProps: 'all' });
         }
         advanceToNextNode();
+        state.isAnimating = false;
     });
-    state.isAnimating = false;
 }
 
 // --- PARTICULES SHOP DORÉES ---
@@ -2105,20 +2154,59 @@ function animateDamageText(d, pS) {
 function showEndOverlay(isWin) {
     stopEnemyParticles();
     const overlay = document.getElementById('game-over-overlay');
-    overlay.style.display = 'flex'; overlay.style.opacity = 0;
+    const content = document.querySelector('.game-over-content');
     const title = document.getElementById('game-over-title');
     const msg = document.getElementById('game-over-message');
+    const restartBtn = document.getElementById('btn-restart');
+    
+    overlay.style.display = 'flex';
+    gsap.set(overlay, { opacity: 0 });
+    gsap.set(content, { scale: 0.8, opacity: 0, rotationX: -20 });
+    
+    // Populate Stats
+    document.getElementById('stat-enemies').innerText = state.run.stats.enemiesDefeated;
+    document.getElementById('stat-damage').innerText = state.run.stats.totalDamageDealt;
+    document.getElementById('stat-gold').innerText = state.run.stats.totalGoldEarned;
+    
+    const lastBossId = state.run.stats.bossId || (state.enemy ? state.enemy.id : null);
+    document.getElementById('stat-boss').innerText = lastBossId ? t(`enemies.${lastBossId}`) : "---";
+
+    restartBtn.innerText = t('ui.new_adventure');
+
     if (isWin) {
         title.innerText = t('ui.victory');
         title.className = "win";
         msg.innerText = t('ui.enemy_defeated');
-    }
-    else {
+        document.getElementById('game-over-icon').innerHTML = "🏆";
+        content.className = "game-over-content win-theme";
+    } else {
         title.innerText = t('ui.defeat');
         title.className = "lose";
-        msg.innerText = ""; // Optional: Add a defeat message in translations
+        msg.innerText = "Votre voyage s'arrête ici...";
+        document.getElementById('game-over-icon').innerHTML = "💀";
+        content.className = "game-over-content lose-theme";
     }
-    gsap.to(overlay, { opacity: 1, duration: 1 });
+
+    const tl = gsap.timeline();
+    tl.to(overlay, { opacity: 1, duration: 0.8, ease: "power2.out" });
+    tl.to(content, { 
+        opacity: 1, 
+        scale: 1, 
+        rotationX: 0, 
+        duration: 1, 
+        ease: "expo.out" 
+    }, "-=0.4");
+    
+    tl.from("#game-over-title", { y: 20, opacity: 0, duration: 0.8, ease: "power2.out" }, "-=0.6");
+    tl.from("#game-over-message", { y: 15, opacity: 0, duration: 0.8, ease: "power2.out" }, "-=0.6");
+    tl.from(".stat-box", { 
+        y: 20, 
+        opacity: 0, 
+        duration: 0.6, 
+        stagger: 0.1, 
+        ease: "power2.out" 
+    }, "-=0.4");
+    tl.from("#btn-restart", { y: 20, opacity: 0, duration: 0.8, ease: "back.out(1.7)" }, "-=0.4");
 }
 
 // --- LOGIQUE DE LA MODAL (GUIDE) ---
@@ -2132,9 +2220,10 @@ function initComboModal() {
         li.className = 'combo-item';
 
         // Generate mini card illustrations
-        const cardsHTML = c.cards.map(card =>
-            `<div class="combo-mini-card" style="background-image: url('assets/card_${card}.webp');"></div>`
-        ).join('');
+        const cardsHTML = c.cards.map(cardId => {
+            const suit = cardId.split('_')[0]; // Extract suit from "suit_rank"
+            return `<div class="combo-mini-card ${suit}" style="background-image: url('assets/card_${cardId}.webp');"></div>`;
+        }).join('');
 
         li.innerHTML = `
             <div class="combo-rank">${romanNumerals[idx]}</div>
