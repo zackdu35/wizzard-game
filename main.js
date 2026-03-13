@@ -1,5 +1,5 @@
 // --- CONFIGURATION DEV ---
-const DEV_MODE = false; // Passez à false pour désactiver le mode développeur
+const DEV_MODE = true; // Passez à false pour désactiver le mode développeur
 
 // --- POOL D'ENNEMIS ---
 const ENEMY_POOL = [
@@ -10,7 +10,7 @@ const ENEMY_POOL = [
     { id: "pixie", hp: 170, attack: 11, tier: 1, image: "Cornish Pixie.png" },
     // Tier 2 (nodes 4-5): medium HP, medium attack
     { id: "basilisk", hp: 300, attack: 15, tier: 2, image: "Juvenile Basilisk.png" },
-    { id: "boggart", hp: 280, attack: 18, tier: 2, image: "Boggart.png" },
+    { id: "boggart", hp: 280, attack: 18, tier: 2, image: "Boggart.png", bg: "salle-de-classe-bg.png" },
     { id: "hippogriff", hp: 320, attack: 14, tier: 2, image: "Furious Hippogriff.png", bg: "bg-foret-interdite.png" },
     { id: "skrewt", hp: 260, attack: 20, tier: 2, image: "Blast-Ended Skrewt.png" },
     // Tier 3 (nodes 7-8): high HP, high attack
@@ -70,18 +70,18 @@ const NODE_TYPES = {
     DORTOIR: "dortoir"
 };
 
-// Chaque entrée = une colonne avec 1-2 noeuds possibles (max 2 choix)
+// Chaque entrée = une colonne avec 1-3 noeuds possibles (max 3 choix)
 const RUN_TEMPLATE = [
-    [{ type: NODE_TYPES.COMBAT, tier: 1 }],                                     // Col 0
-    [{ type: NODE_TYPES.COMBAT, tier: 1 }, { type: NODE_TYPES.DORTOIR }],        // Col 1
-    [{ type: NODE_TYPES.SHOP }],                                                 // Col 2
-    [{ type: NODE_TYPES.COMBAT, tier: 2 }, { type: NODE_TYPES.DORTOIR }],        // Col 3
-    [{ type: NODE_TYPES.COMBAT, tier: 2 }],                                      // Col 4
-    [{ type: NODE_TYPES.SHOP }],                                                 // Col 5
-    [{ type: NODE_TYPES.COMBAT, tier: 3 }, { type: NODE_TYPES.DORTOIR }],        // Col 6
-    [{ type: NODE_TYPES.COMBAT, tier: 3 }],                                      // Col 7
-    [{ type: NODE_TYPES.SHOP }],                                                 // Col 8
-    [{ type: NODE_TYPES.BOSS }],                                                 // Col 9
+    [{ type: NODE_TYPES.COMBAT, tier: 1 }],                                      // Col 0: Départ forcé
+    [{ type: NODE_TYPES.COMBAT, tier: 1 }, { type: NODE_TYPES.COMBAT, tier: 1 }], // Col 1
+    [{ type: NODE_TYPES.SHOP }, { type: NODE_TYPES.COMBAT, tier: 1 }, { type: NODE_TYPES.DORTOIR }], // Col 2: Premier choix stratégique
+    [{ type: NODE_TYPES.COMBAT, tier: 2 }],                                      // Col 3: Passage obligé T2
+    [{ type: NODE_TYPES.COMBAT, tier: 2 }, { type: NODE_TYPES.SHOP }],            // Col 4
+    [{ type: NODE_TYPES.COMBAT, tier: 2 }, { type: NODE_TYPES.DORTOIR }, { type: NODE_TYPES.COMBAT, tier: 2 }], // Col 5
+    [{ type: NODE_TYPES.COMBAT, tier: 3 }],                                      // Col 6: Passage obligé T3
+    [{ type: NODE_TYPES.COMBAT, tier: 3 }, { type: NODE_TYPES.SHOP }],            // Col 7
+    [{ type: NODE_TYPES.SHOP }, { type: NODE_TYPES.DORTOIR }],                   // Col 8: Préparation finale
+    [{ type: NODE_TYPES.BOSS }],                                                 // Col 9: Boss Final
 ];
 
 // --- ÉTAT GLOBAL ---
@@ -341,6 +341,7 @@ function showMap() {
     document.getElementById('main-game-bg').style.display = 'block';
     document.getElementById('main-game-bg').style.backgroundImage = "url('assets/map-bg.png')";
     document.getElementById('grimoire-btn').style.display = 'none';
+    document.body.classList.add('on-map');
     renderMap();
 
     // Animation d'entrée Premium
@@ -364,6 +365,7 @@ async function enterCurrentNode() {
     // Ensure background is visible during gameplay
     const mainBg = document.getElementById('main-game-bg');
     mainBg.style.display = 'block';
+    document.body.classList.remove('on-map');
 
     if (currentNode.type === NODE_TYPES.COMBAT || currentNode.type === NODE_TYPES.BOSS) {
         // Set current enemy from node data
@@ -1153,6 +1155,17 @@ function toggleSelectionGSAP(wrapper) {
     updateUI();
 }
 
+const blessingIcons = {
+    grace: "🪄",
+    multiplication: "💎",
+    eau_vive: "🧪",
+    cape_invisibilite: "🧥",
+    retourneur_temps: "⏳",
+    carte_maraudeur: "📜",
+    vif_or: "✨",
+    choixpeau: "🧙"
+};
+
 function updateUI() {
     document.getElementById('gold-value').innerText = state.player.gold;
     document.getElementById('discards-value').innerText = state.player.discards;
@@ -1163,6 +1176,28 @@ function updateUI() {
 
     document.getElementById('player-hp-text').innerText = `${state.player.hp}`;
     document.getElementById('crit-value').innerText = `${Math.round(state.critChance * 100)}%`;
+
+    // Mise à jour des artefacts dans le HUD
+    const artifactsHud = document.getElementById('player-artifacts-hud');
+    if (artifactsHud) {
+        artifactsHud.innerHTML = '';
+        state.player.blessings.forEach(bid => {
+            const icon = blessingIcons[bid] || "🏺";
+            const name = t(`blessings.${bid}.name`);
+            const desc = t(`blessings.${bid}.desc`);
+            
+            const artEl = document.createElement('div');
+            artEl.className = 'artifact-icon';
+            artEl.innerHTML = `
+                ${icon}
+                <div class="artifact-tooltip">
+                    <span class="artifact-tooltip-name">${name}</span>
+                    <span class="artifact-tooltip-desc">${desc}</span>
+                </div>
+            `;
+            artifactsHud.appendChild(artEl);
+        });
+    }
 
     // Nouveaux overlays dynamiques sur la carte boss (Corners only)
     if (state.enemy) {
@@ -1507,11 +1542,11 @@ async function animateBossExplosion() {
 
     // --- Phase 1: Accumulation (The "Hold") ---
     const tl = gsap.timeline();
-    tl.to(bossCard, { x: 15, duration: 0.02, repeat: 25, yoyo: true, ease: "none" });
+    tl.to(bossCard, { x: 15, duration: 0.02, repeat: 15, yoyo: true, ease: "none" });
     tl.to(bossCard, {
         filter: 'brightness(8) saturate(0)',
         scale: 1.15,
-        duration: 0.5,
+        duration: 0.3,
         ease: "power4.in"
     }, 0.1);
 
@@ -1614,7 +1649,7 @@ async function animateBossExplosion() {
                 y: Math.sin(angle) * dist - 100,
                 scale: 5 + Math.random() * 5,
                 opacity: 0,
-                duration: 2 + Math.random() * 1,
+                duration: 1 + Math.random() * 0.5,
                 ease: "power2.out"
             }, 0.02);
             return;
@@ -1622,7 +1657,7 @@ async function animateBossExplosion() {
 
         const angle = obj.type === 'spark' ? Math.random() * Math.PI * 2 : Math.atan2(obj.y - centerY, obj.x - centerX) + (Math.random() - 0.5);
         const force = obj.type === 'spark' ? 500 + Math.random() * 1000 : 300 + Math.random() * 600;
-        const duration = obj.type === 'spark' ? 0.3 + Math.random() * 0.5 : 1.5 + Math.random() * 1;
+        const duration = obj.type === 'spark' ? 0.3 + Math.random() * 0.4 : 0.8 + Math.random() * 0.5;
 
         mainTl.to(obj.el, {
             x: Math.cos(angle) * force,
@@ -1639,14 +1674,21 @@ async function animateBossExplosion() {
 
     // --- Phase 4: Smooth Aftermath Transition ---
     // On réduit le temps d'attente pour que ça paraisse moins long
-    await gsap.to(explosionContainer, { opacity: 0, duration: 0.4, ease: "power1.inOut" });
-    explosionContainer.remove();
+    gsap.to(explosionContainer, { opacity: 0, duration: 0.3, ease: "power1.inOut", onComplete: () => explosionContainer.remove() });
+    // explosionContainer.remove(); // Moved to onComplete
 }
 
 async function victorySequence() {
     let gains = 10;
     if (state.player.blessings.includes("multiplication")) gains += 5;
     state.player.gold += gains;
+
+    // Récupération de PV après combat (10% de la vie max)
+    const healPercent = 0.10;
+    const healAmount = Math.floor(state.player.maxHp * healPercent);
+    const oldHp = state.player.hp;
+    state.player.hp = Math.min(state.player.maxHp, state.player.hp + healAmount);
+    const actualHeal = state.player.hp - oldHp;
 
     // Track stats
     state.run.stats.enemiesDefeated++;
@@ -1660,8 +1702,21 @@ async function victorySequence() {
 
     // Afficher l'overlay de VICTOIRE (Premium) au lieu de passer à la suite en plein milieu
     const overlay = document.getElementById('victory-overlay');
-    const goldText = document.getElementById('victory-gold-reward');
-    goldText.innerText = `+${gains} 🪙`;
+    const goldText = document.getElementById('v-gold-reward-text');
+    const hpText = document.getElementById('v-hp-reward-text');
+    const hpRewardItem = document.getElementById('v-hp-reward-item');
+
+    goldText.innerText = `+${gains}`;
+    
+    if (actualHeal > 0) {
+        hpText.innerText = `+${actualHeal}`;
+        hpRewardItem.style.display = 'flex';
+    } else {
+        hpRewardItem.style.display = 'none';
+    }
+
+    // Mettre à jour l'interface (HP, Or)
+    updateUI();
 
     overlay.classList.remove('modal-hidden');
     overlay.classList.add('modal-visible');
@@ -1669,13 +1724,13 @@ async function victorySequence() {
     // Animation d'entrée pour l'overlay
     gsap.fromTo('.victory-content',
         { scale: 0.5, opacity: 0, rotationY: 90 },
-        { scale: 1, opacity: 1, rotationY: 0, duration: 1, ease: "expo.out" }
+        { scale: 1, opacity: 1, rotationY: 0, duration: 0.6, ease: "expo.out" }
     );
 
     // Ornaments animation
     gsap.fromTo('.victory-ornament',
         { opacity: 0, scale: 2 },
-        { opacity: 0.6, scale: 1, duration: 1, delay: 0.5, stagger: 0.2, ease: "back.out(2)" }
+        { opacity: 0.6, scale: 1, duration: 0.6, delay: 0.2, stagger: 0.1, ease: "back.out(2)" }
     );
 
     // Lueur pulsante sur le texte victoire
@@ -1821,7 +1876,7 @@ function generateShop() {
         const desc = t(`blessings.${b.id}.desc`);
         const card = document.createElement('div');
         card.className = 'blessing-card';
-        card.innerHTML = `<div class="blessing-name">${name}</div><div class="blessing-desc">${desc}</div><div class="blessing-cost">${b.cost} 🪙</div><button class="buy-btn" ${isOwned || state.player.gold < b.cost ? 'disabled' : ''}>${isOwned ? t('ui.owned') : t('ui.buy')}</button>`;
+        card.innerHTML = `<div class="blessing-name">${name}</div><div class="blessing-desc">${desc}</div><div class="blessing-cost">${b.cost} <span class="stat-icon icon-gold-simple small"></span></div><button class="buy-btn" ${isOwned || state.player.gold < b.cost ? 'disabled' : ''}>${isOwned ? t('ui.owned') : t('ui.buy')}</button>`;
         card.querySelector('.buy-btn').addEventListener('click', (e) => buyBlessing(b, e.target));
         container.appendChild(card);
 

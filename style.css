@@ -127,7 +127,11 @@ body {
     background: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3)),
         radial-gradient(circle at center, transparent 30%, rgba(0, 0, 0, 0.8) 100%);
     pointer-events: none;
+    transition: background 1s ease;
 }
+
+
+
 
 #language-switcher {
     position: absolute;
@@ -573,12 +577,29 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 20px;
+    gap: 40px;
 }
 
-#victory-gold-reward {
+.reward-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    background: none !important;
+}
+
+.reward-item span {
+    background: none !important;
+}
+
+#v-gold-reward-text {
     color: #f1c40f;
     text-shadow: 0 0 20px rgba(241, 196, 15, 0.4);
+    font-weight: bold;
+}
+
+#v-hp-reward-text {
+    color: #2ecc71;
+    text-shadow: 0 0 20px rgba(46, 204, 113, 0.4);
     font-weight: bold;
 }
 
@@ -886,8 +907,125 @@ body {
     box-shadow:
         0 10px 30px rgba(0, 0, 0, 0.6),
         inset 0 0 15px rgba(0, 0, 0, 0.3);
-    z-index: 100;
+    z-index: 1000;
+    pointer-events: none; /* Re-désactivé ici */
+}
+
+/* Sidebar d'Artefacts (Style Demon's Hand) */
+#artifacts-sidebar {
+    position: fixed;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    z-index: 2000;
+    pointer-events: auto;
+}
+
+#player-artifacts-hud {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    background: linear-gradient(to bottom, transparent, rgba(199, 161, 59, 0.05), transparent);
+    padding: 15px 5px;
+    border-left: 1px solid rgba(199, 161, 59, 0.2);
+    border-right: 1px solid rgba(199, 161, 59, 0.2);
+    position: relative;
+}
+
+/* Ornements haut/bas de la barre */
+#artifacts-sidebar::before, #artifacts-sidebar::after {
+    content: '';
+    height: 4px;
+    width: 100%;
+    background: var(--accent-gold);
+    box-shadow: 0 0 10px var(--accent-gold);
+    opacity: 0.5;
+}
+
+.artifact-icon {
+    width: 50px;
+    height: 50px;
+    background: rgba(15, 12, 8, 0.8);
+    border: 2px solid rgba(199, 161, 59, 0.3);
+    border-radius: 4px; /* Plus carré style plaque */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.5rem;
+    cursor: help;
+    position: relative;
+    transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: 
+        0 5px 15px rgba(0, 0, 0, 0.5),
+        inset 0 0 15px rgba(0, 0, 0, 0.8);
+}
+
+.artifact-icon:hover {
+    transform: translateX(-8px) scale(1.1);
+    border-color: var(--accent-gold);
+    background: rgba(40, 30, 15, 0.9);
+    box-shadow: 
+        -5px 0 20px rgba(199, 161, 59, 0.4),
+        0 8px 25px rgba(0, 0, 0, 0.6);
+}
+
+.artifact-tooltip {
+    position: absolute;
+    top: 50%;
+    right: 130%; /* Apparaît à GAUCHE de l'icône */
+    transform: translateY(-50%) translateX(20px);
+    width: 250px;
+    background: linear-gradient(135deg, rgba(20, 15, 10, 0.98), rgba(5, 5, 5, 1));
+    border: 1px solid var(--accent-gold);
+    border-left: 4px solid var(--accent-gold);
+    border-radius: 4px;
+    padding: 15px;
+    color: #fff;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.9rem;
     pointer-events: none;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    z-index: 2100;
+    box-shadow: -10px 10px 40px rgba(0, 0, 0, 0.9);
+}
+
+.artifact-tooltip::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 100%;
+    transform: translateY(-50%);
+    border-width: 8px;
+    border-style: solid;
+    border-color: transparent transparent transparent var(--accent-gold);
+}
+
+.artifact-icon:hover .artifact-tooltip {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(-50%) translateX(0);
+}
+
+.artifact-tooltip-name {
+    font-family: 'Cinzel', serif;
+    color: var(--accent-gold);
+    font-weight: bold;
+    font-size: 1.1rem;
+    margin-bottom: 8px;
+    display: block;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.artifact-tooltip-desc {
+    color: #ddd;
+    line-height: 1.5;
+    font-style: italic;
 }
 
 .stat-row {
@@ -917,6 +1055,21 @@ body {
     background-repeat: no-repeat;
     filter: drop-shadow(2px 2px 5px rgba(0, 0, 0, 0.9));
     flex-shrink: 0;
+    vertical-align: middle;
+}
+
+.stat-icon.small {
+    width: 24px;
+    height: 24px;
+    border-width: 1px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.8), inset 0 0 4px rgba(0, 0, 0, 0.6);
+}
+
+.stat-icon.large {
+    width: 60px;
+    height: 60px;
+    border-width: 2px;
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.8), inset 0 0 12px rgba(0, 0, 0, 0.6);
 }
 
 /* Coeur de rubis */
@@ -2626,7 +2779,51 @@ button:disabled {
     align-items: center;
     z-index: 1400;
     padding: 40px 20px;
+    overflow: hidden;
 }
+
+/* Directed light effect: brightest in top-right, darker towards bottom-left */
+.on-map #main-game-bg::after {
+    background: radial-gradient(circle at 90% 10%, 
+        rgba(255, 255, 255, 0.05) 0%, 
+        rgba(0, 0, 0, 0.1) 40%, 
+        rgba(0, 0, 0, 0.6) 100%);
+}
+
+/* Pinned circular candle light in the absolute top right corner */
+.map-candle-light {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 100vw;
+    height: 100vh;
+    /* Layered gradient for realistic candle core and glow - Concentrated version */
+    background: 
+        radial-gradient(circle at 100% 0%, 
+            rgba(255, 255, 230, 0.45) 0%, 
+            rgba(255, 200, 80, 0.2) 10%, 
+            rgba(255, 120, 20, 0.1) 20%,
+            rgba(150, 60, 0, 0.05) 30%,
+            transparent 45%);
+    pointer-events: none;
+    z-index: 1500;
+    animation: candleFlicker 6s infinite ease-in-out;
+    mix-blend-mode: plus-lighter;
+    filter: blur(12px);
+}
+
+@keyframes candleFlicker {
+    0%, 100% { opacity: 0.85; filter: blur(8px); }
+    10% { opacity: 0.95; filter: blur(7px); }
+    15% { opacity: 0.75; filter: blur(9px); }
+    25% { opacity: 0.9; filter: blur(8px); }
+    45% { opacity: 0.8; filter: blur(10px); }
+    65% { opacity: 0.92; filter: blur(7px); }
+    80% { opacity: 0.78; filter: blur(9px); }
+    92% { opacity: 0.95; filter: blur(8px); }
+}
+
+
 
 #map-title-text {
     font-family: 'Cinzel', serif;
@@ -2726,7 +2923,7 @@ button:disabled {
     justify-content: center;
     align-items: center;
     font-size: 1.5rem;
-    background: var(--bg-card-dark);
+    background: #15100a;
     transition: all 0.3s ease;
 }
 
@@ -2771,8 +2968,8 @@ button:disabled {
 }
 
 .map-node.upcoming .map-node-icon {
-    border-color: var(--border-color);
-    opacity: 0.6;
+    border-color: rgba(154, 144, 128, 0.4);
+    opacity: 0.8;
 }
 
 /* Node type colors */
@@ -2795,7 +2992,7 @@ button:disabled {
 .map-node-label {
     font-family: 'Inter', sans-serif;
     font-size: 0.65rem;
-    color: var(--text-secondary);
+    color: #b0a090;
     margin-top: 8px;
     text-transform: uppercase;
     text-align: center;
@@ -2807,7 +3004,7 @@ button:disabled {
 .map-connector {
     width: 40px;
     height: 3px;
-    background: var(--border-color);
+    background: rgba(154, 144, 128, 0.3);
     flex-shrink: 0;
 }
 
