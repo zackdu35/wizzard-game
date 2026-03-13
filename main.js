@@ -377,7 +377,7 @@ async function enterCurrentNode() {
             if (poolEnemy.bg) latestBg = poolEnemy.bg;
             if (poolEnemy.image) latestImage = poolEnemy.image;
         }
-        
+
         const bgImage = latestBg || 'Gemini_Generated_Image_446xcq446xcq446x.webp';
         mainBg.style.backgroundImage = `url('assets/${bgImage}')`;
 
@@ -1239,6 +1239,12 @@ async function executeTurn() {
     const handContainer = document.getElementById('hand-container');
     const selectedWrappers = state.selectedIndices.map(idx => handContainer.querySelector(`[data-index="${idx}"]`)).filter(el => el);
 
+    // Remove static critical indicators during attack for cleaner visuals
+    selectedWrappers.forEach(w => {
+        const critInd = w.querySelector('.crit-indicator');
+        if (critInd) critInd.remove();
+    });
+
     // Dégâts immédiats visuels
     const targetHP = Math.max(0, state.enemy.hp - finalDamage);
 
@@ -1355,7 +1361,7 @@ async function executeTurn() {
         if (critWrapper) {
             const critLabel = document.createElement('div');
             critLabel.className = 'crit-popup';
-            critLabel.innerText = '+25%';
+            critLabel.innerText = 'CRITICAL';
             critWrapper.appendChild(critLabel);
 
             await gsap.fromTo(critLabel,
@@ -1375,6 +1381,9 @@ async function executeTurn() {
                 });
                 gsap.fromTo(damageEl, { scale: 1.4 }, { scale: 1, duration: 0.3, ease: "back.out(2)" });
             }
+
+            // Faire disparaître le texte CRITICAL après l'explication du bonus
+            gsap.to(critLabel, { opacity: 0, y: -90, duration: 0.4, delay: 0.2, onComplete: () => critLabel.remove() });
 
             await new Promise(r => setTimeout(r, 300));
         }
@@ -1499,11 +1508,11 @@ async function animateBossExplosion() {
     // --- Phase 1: Accumulation (The "Hold") ---
     const tl = gsap.timeline();
     tl.to(bossCard, { x: 15, duration: 0.02, repeat: 25, yoyo: true, ease: "none" });
-    tl.to(bossCard, { 
-        filter: 'brightness(8) saturate(0)', 
-        scale: 1.15, 
-        duration: 0.5, 
-        ease: "power4.in" 
+    tl.to(bossCard, {
+        filter: 'brightness(8) saturate(0)',
+        scale: 1.15,
+        duration: 0.5,
+        ease: "power4.in"
     }, 0.1);
 
     await tl;
@@ -1515,9 +1524,11 @@ async function animateBossExplosion() {
     const globalLight = document.createElement('div');
     globalLight.className = 'explosion-light';
     document.body.appendChild(globalLight);
-    gsap.to(globalLight, { opacity: 1, duration: 0.05, onComplete: () => {
-        gsap.to(globalLight, { opacity: 0, duration: 0.8, ease: "power2.out", onComplete: () => globalLight.remove() });
-    }});
+    gsap.to(globalLight, {
+        opacity: 1, duration: 0.05, onComplete: () => {
+            gsap.to(globalLight, { opacity: 0, duration: 0.8, ease: "power2.out", onComplete: () => globalLight.remove() });
+        }
+    });
 
     // Shockwaves multi-couches
     [800, 1200, 1600].forEach((size, i) => {
@@ -1550,8 +1561,8 @@ async function animateBossExplosion() {
         frag.style.cssText = `
             width: ${w}px; height: ${h}px;
             left: ${startX}px; top: ${startY}px;
-            background: linear-gradient(${Math.random()*360}deg, ${colors[0]}, ${colors[1]});
-            clip-path: polygon(${Math.random()*30}% 0%, 100% ${Math.random()*30}%, ${70+Math.random()*30}% 100%, 0% ${70+Math.random()*30}%);
+            background: linear-gradient(${Math.random() * 360}deg, ${colors[0]}, ${colors[1]});
+            clip-path: polygon(${Math.random() * 30}% 0%, 100% ${Math.random() * 30}%, ${70 + Math.random() * 30}% 100%, 0% ${70 + Math.random() * 30}%);
         `;
         explosionContainer.appendChild(frag);
         elements.push({ el: frag, x: startX, y: startY, type: 'wood' });
@@ -1609,10 +1620,10 @@ async function animateBossExplosion() {
             return;
         }
 
-        const angle = obj.type === 'spark' ? Math.random() * Math.PI * 2 : Math.atan2(obj.y - centerY, obj.x - centerX) + (Math.random()-0.5);
+        const angle = obj.type === 'spark' ? Math.random() * Math.PI * 2 : Math.atan2(obj.y - centerY, obj.x - centerX) + (Math.random() - 0.5);
         const force = obj.type === 'spark' ? 500 + Math.random() * 1000 : 300 + Math.random() * 600;
         const duration = obj.type === 'spark' ? 0.3 + Math.random() * 0.5 : 1.5 + Math.random() * 1;
-        
+
         mainTl.to(obj.el, {
             x: Math.cos(angle) * force,
             y: Math.sin(angle) * force + (obj.type === 'wood' ? 400 : 0), // Gravité pour le bois uniquement
@@ -1651,12 +1662,12 @@ async function victorySequence() {
     const overlay = document.getElementById('victory-overlay');
     const goldText = document.getElementById('victory-gold-reward');
     goldText.innerText = `+${gains} 🪙`;
-    
+
     overlay.classList.remove('modal-hidden');
     overlay.classList.add('modal-visible');
-    
+
     // Animation d'entrée pour l'overlay
-    gsap.fromTo('.victory-content', 
+    gsap.fromTo('.victory-content',
         { scale: 0.5, opacity: 0, rotationY: 90 },
         { scale: 1, opacity: 1, rotationY: 0, duration: 1, ease: "expo.out" }
     );
@@ -1666,9 +1677,9 @@ async function victorySequence() {
         { opacity: 0, scale: 2 },
         { opacity: 0.6, scale: 1, duration: 1, delay: 0.5, stagger: 0.2, ease: "back.out(2)" }
     );
-    
+
     // Lueur pulsante sur le texte victoire
-    gsap.fromTo('#victory-title', 
+    gsap.fromTo('#victory-title',
         { filter: 'drop-shadow(0 0 10px rgba(199,161,59,0.4))' },
         { filter: 'drop-shadow(0 0 40px rgba(199,161,59,0.9))', duration: 1.5, repeat: -1, yoyo: true }
     );
@@ -1690,15 +1701,15 @@ function startVictoryParticles() {
         const size = 2 + Math.random() * 4;
         const startX = Math.random() * window.innerWidth;
         const startY = window.innerHeight + 10;
-        
+
         p.style.width = size + 'px';
         p.style.height = size + 'px';
         p.style.left = startX + 'px';
         p.style.top = startY + 'px';
-        p.style.boxShadow = `0 0 ${size*2}px rgba(255,255,255,0.8)`;
-        
+        p.style.boxShadow = `0 0 ${size * 2}px rgba(255,255,255,0.8)`;
+
         container.appendChild(p);
-        
+
         gsap.to(p, {
             y: -(window.innerHeight + 50),
             x: (Math.random() - 0.5) * 200,
@@ -1720,9 +1731,9 @@ function continueFromVictory() {
     clearVictoryParticles();
     const overlay = document.getElementById('victory-overlay');
     const bossCard = document.getElementById('boss-card');
-    
+
     state.isAnimating = true;
-    
+
     const tl = gsap.timeline();
     tl.to('.victory-content', { scale: 0.9, opacity: 0, duration: 0.4, ease: "power2.in" });
     tl.to("#game-container", { opacity: 0, duration: 0.6 }, "-=0.2");
@@ -2158,16 +2169,16 @@ function showEndOverlay(isWin) {
     const title = document.getElementById('game-over-title');
     const msg = document.getElementById('game-over-message');
     const restartBtn = document.getElementById('btn-restart');
-    
+
     overlay.style.display = 'flex';
     gsap.set(overlay, { opacity: 0 });
     gsap.set(content, { scale: 0.8, opacity: 0, rotationX: -20 });
-    
+
     // Populate Stats
     document.getElementById('stat-enemies').innerText = state.run.stats.enemiesDefeated;
     document.getElementById('stat-damage').innerText = state.run.stats.totalDamageDealt;
     document.getElementById('stat-gold').innerText = state.run.stats.totalGoldEarned;
-    
+
     const lastBossId = state.run.stats.bossId || (state.enemy ? state.enemy.id : null);
     document.getElementById('stat-boss').innerText = lastBossId ? t(`enemies.${lastBossId}`) : "---";
 
@@ -2189,22 +2200,22 @@ function showEndOverlay(isWin) {
 
     const tl = gsap.timeline();
     tl.to(overlay, { opacity: 1, duration: 0.8, ease: "power2.out" });
-    tl.to(content, { 
-        opacity: 1, 
-        scale: 1, 
-        rotationX: 0, 
-        duration: 1, 
-        ease: "expo.out" 
+    tl.to(content, {
+        opacity: 1,
+        scale: 1,
+        rotationX: 0,
+        duration: 1,
+        ease: "expo.out"
     }, "-=0.4");
-    
+
     tl.from("#game-over-title", { y: 20, opacity: 0, duration: 0.8, ease: "power2.out" }, "-=0.6");
     tl.from("#game-over-message", { y: 15, opacity: 0, duration: 0.8, ease: "power2.out" }, "-=0.6");
-    tl.from(".stat-box", { 
-        y: 20, 
-        opacity: 0, 
-        duration: 0.6, 
-        stagger: 0.1, 
-        ease: "power2.out" 
+    tl.from(".stat-box", {
+        y: 20,
+        opacity: 0,
+        duration: 0.6,
+        stagger: 0.1,
+        ease: "power2.out"
     }, "-=0.4");
     tl.from("#btn-restart", { y: 20, opacity: 0, duration: 0.8, ease: "back.out(1.7)" }, "-=0.4");
 }

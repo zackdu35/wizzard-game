@@ -111,11 +111,21 @@ body {
 #main-game-bg {
     position: fixed;
     inset: 0;
-    background: url('assets/Gemini_Generated_Image_446xcq446xcq446x.webp');
+    background-image: url('assets/Gemini_Generated_Image_446xcq446xcq446x.webp');
     background-size: cover;
     background-position: center;
     z-index: -5;
     display: none;
+    pointer-events: none;
+}
+
+#main-game-bg::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    /* Overlay plus doux + Vignette élargie pour un meilleur équilibre visuel */
+    background: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3)),
+        radial-gradient(circle at center, transparent 30%, rgba(0, 0, 0, 0.8) 100%);
     pointer-events: none;
 }
 
@@ -417,9 +427,9 @@ body {
 #victory-overlay {
     position: fixed;
     inset: 0;
-    background: radial-gradient(circle at center, rgba(30, 20, 10, 0.9), rgba(0, 0, 0, 0.95));
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
     z-index: 5000;
     display: none;
     justify-content: center;
@@ -441,7 +451,7 @@ body {
 .victory-content {
     text-align: center;
     background: linear-gradient(135deg, rgba(35, 25, 12, 0.98), rgba(15, 12, 5, 1));
-    padding: 80px 100px;
+    padding: 60px 80px;
     border-radius: 4px;
     /* Plus carré / Premium Scroll style */
     border: 1px solid rgba(199, 161, 59, 0.5);
@@ -451,6 +461,10 @@ body {
         inset 0 0 60px rgba(0, 0, 0, 0.8);
     position: relative;
     overflow: visible;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
 }
 
 /* Ornaments Styles */
@@ -566,27 +580,6 @@ body {
     color: #f1c40f;
     text-shadow: 0 0 20px rgba(241, 196, 15, 0.4);
     font-weight: bold;
-}
-
-.victory-coin-premium {
-    width: 60px;
-    height: 60px;
-    background-image: url('assets/gold_icon_premium.png');
-    background-size: contain;
-    background-repeat: no-repeat;
-    background-position: center;
-    filter: drop-shadow(0 0 15px rgba(241, 196, 15, 0.6));
-    animation: coinSpin 4s linear infinite;
-}
-
-@keyframes coinSpin {
-    0% {
-        transform: rotateY(0deg);
-    }
-
-    100% {
-        transform: rotateY(360deg);
-    }
 }
 
 #btn-victory-continue {
@@ -1394,7 +1387,7 @@ button:disabled {
     padding: 60px 40px;
     text-align: center;
     position: relative;
-    box-shadow: 
+    box-shadow:
         0 0 100px rgba(0, 0, 0, 1),
         0 0 40px rgba(139, 0, 0, 0.1),
         inset 0 0 50px rgba(0, 0, 0, 0.9);
@@ -1410,14 +1403,14 @@ button:disabled {
 
 #game-over-title.lose {
     color: #b00;
-    text-shadow: 
+    text-shadow:
         0 0 20px rgba(176, 0, 0, 0.5),
         0 0 40px rgba(176, 0, 0, 0.2);
 }
 
 #game-over-title.win {
     color: var(--accent-gold);
-    text-shadow: 
+    text-shadow:
         0 0 20px rgba(199, 161, 59, 0.5),
         0 0 40px rgba(199, 161, 59, 0.2);
 }
@@ -1481,7 +1474,7 @@ button:disabled {
     cursor: pointer;
     position: relative;
     transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
-    box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
     margin: 0 auto;
 }
 
@@ -1513,7 +1506,7 @@ button:disabled {
 
 .lose-theme {
     border-color: rgba(139, 0, 0, 0.4);
-    box-shadow: 
+    box-shadow:
         0 0 100px rgba(0, 0, 0, 1),
         0 0 40px rgba(139, 0, 0, 0.15),
         inset 0 0 50px rgba(0, 0, 0, 0.9);
@@ -1525,7 +1518,7 @@ button:disabled {
 
 .win-theme {
     border-color: rgba(199, 161, 59, 0.4);
-    box-shadow: 
+    box-shadow:
         0 0 100px rgba(0, 0, 0, 1),
         0 0 40px rgba(199, 161, 59, 0.15),
         inset 0 0 50px rgba(0, 0, 0, 0.9);
@@ -2411,21 +2404,20 @@ button:disabled {
 
 .crit-popup {
     position: absolute;
-    top: -80px;
+    top: -45px;
     left: 50%;
     transform: translateX(-50%);
     font-family: 'Cinzel', serif;
-    font-size: 1.8rem;
-    font-weight: bold;
-    background: linear-gradient(45deg, #ff00ff, #00f2fe, #7000ff);
+    font-size: 1.4rem;
+    font-weight: 900;
+    background: linear-gradient(to bottom, #fff, #a29bfe);
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
-    filter: drop-shadow(0 0 10px rgba(255, 0, 255, 0.5));
+    filter: drop-shadow(0 0 12px rgba(162, 155, 254, 1)) drop-shadow(0 2px 4px rgba(0, 0, 0, 0.9));
     pointer-events: none;
     z-index: 201;
     white-space: nowrap;
-    animation: critical-nebula-text 2s linear infinite;
 }
 
 @keyframes critical-nebula-text {
