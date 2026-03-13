@@ -1,5 +1,5 @@
 // --- CONFIGURATION DEV ---
-const DEV_MODE = true; // Passez à false pour désactiver le mode développeur
+const DEV_MODE = false; // Passez à false pour désactiver le mode développeur
 
 // --- POOL D'ENNEMIS ---
 const ENEMY_POOL = [
