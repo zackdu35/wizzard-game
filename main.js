@@ -1,5 +1,5 @@
 // --- CONFIGURATION DEV ---
-const DEV_MODE = true; // Passez à false pour désactiver le mode développeur
+const DEV_MODE = false; // Passez à false pour désactiver le mode développeur
 
 // --- POOL D'ENNEMIS ---
 const ENEMY_POOL = [
@@ -362,10 +362,7 @@ async function enterCurrentNode() {
     if (column.selectedNodeIndex === null) return;
     const currentNode = column.nodes[column.selectedNodeIndex];
 
-    // Ensure background is visible during gameplay
     const mainBg = document.getElementById('main-game-bg');
-    mainBg.style.display = 'block';
-    document.body.classList.remove('on-map');
 
     if (currentNode.type === NODE_TYPES.COMBAT || currentNode.type === NODE_TYPES.BOSS) {
         // Set current enemy from node data
@@ -381,7 +378,6 @@ async function enterCurrentNode() {
         }
 
         const bgImage = latestBg || 'Gemini_Generated_Image_446xcq446xcq446x.webp';
-        mainBg.style.backgroundImage = `url('assets/${bgImage}')`;
 
         // Update enemy zone UI
         document.getElementById('enemy-hp-overlay').innerText = state.enemy.hp;
@@ -401,6 +397,11 @@ async function enterCurrentNode() {
         }
 
         screenTransition(() => {
+            // Apply background inside transition
+            mainBg.style.backgroundImage = `url('assets/${bgImage}')`;
+            mainBg.style.display = 'block';
+            document.body.classList.remove('on-map');
+
             document.getElementById('map-screen').style.display = 'none';
             document.getElementById('grimoire-btn').style.display = '';
             gsap.set('#map-screen', { opacity: 1 });
@@ -408,8 +409,12 @@ async function enterCurrentNode() {
             startNewFight();
         });
     } else if (currentNode.type === NODE_TYPES.SHOP) {
-        mainBg.style.backgroundImage = `url('assets/shop-bg.png')`;
         screenTransition(() => {
+            // Apply background inside transition
+            mainBg.style.backgroundImage = `url('assets/shop-bg.png')`;
+            mainBg.style.display = 'block';
+            document.body.classList.remove('on-map');
+
             document.getElementById('map-screen').style.display = 'none';
             document.getElementById('grimoire-btn').style.display = '';
             gsap.set('#map-screen', { opacity: 1 });
@@ -419,8 +424,12 @@ async function enterCurrentNode() {
             generateShop();
         });
     } else if (currentNode.type === NODE_TYPES.DORTOIR) {
-        mainBg.style.backgroundImage = `url('assets/dortoire-bg.png')`;
         screenTransition(() => {
+            // Apply background inside transition
+            mainBg.style.backgroundImage = `url('assets/dortoire-bg.png')`;
+            mainBg.style.display = 'block';
+            document.body.classList.remove('on-map');
+
             document.getElementById('map-screen').style.display = 'none';
             document.getElementById('grimoire-btn').style.display = '';
             gsap.set('#map-screen', { opacity: 1 });
@@ -1185,7 +1194,7 @@ function updateUI() {
             const icon = blessingIcons[bid] || "🏺";
             const name = t(`blessings.${bid}.name`);
             const desc = t(`blessings.${bid}.desc`);
-            
+
             const artEl = document.createElement('div');
             artEl.className = 'artifact-icon';
             artEl.innerHTML = `
@@ -1707,7 +1716,7 @@ async function victorySequence() {
     const hpRewardItem = document.getElementById('v-hp-reward-item');
 
     goldText.innerText = `+${gains}`;
-    
+
     if (actualHeal > 0) {
         hpText.innerText = `+${actualHeal}`;
         hpRewardItem.style.display = 'flex';
