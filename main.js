@@ -16,7 +16,7 @@ const ENEMY_POOL = [
     // Tier 3 (nodes 7-8): high HP, high attack
     { id: "werewolf", hp: 400, attack: 22, tier: 3, image: "werefolf-ennemy.png", bg: "loup-garou-bg.png" },
     { id: "dragon", hp: 450, attack: 25, tier: 3, image: "Hungarian Horntail.png", bg: "dragon-map-bg.png" },
-    { id: "centaur", hp: 420, attack: 20, tier: 3, image: "ennemy-troll.png", bg: "bg-foret-interdite.png" },
+    { id: "centaur", hp: 420, attack: 20, tier: 3, image: "centaure.png", bg: "bg-foret-interdite.png" },
 ];
 
 const BOSS_POOL = [
@@ -24,7 +24,7 @@ const BOSS_POOL = [
         id: "dementor",
         hp: 800,
         attack: 30,
-        image: "ennemy-troll.png", // Default for now
+        image: "dementor.png",
         malus: {
             id: "no_ravenclaw",
             description: "Les cartes de Serdaigle ne font aucun degat.",
@@ -35,7 +35,7 @@ const BOSS_POOL = [
         id: "voldemort",
         hp: 1000,
         attack: 35,
-        image: "ennemy-troll.png",
+        image: "voldemort.png",
         malus: {
             id: "no_low_cards",
             description: "Les cartes de rang 2 a 6 ne font aucun degat.",
@@ -46,7 +46,7 @@ const BOSS_POOL = [
         id: "bellatrix",
         hp: 700,
         attack: 40,
-        image: "ennemy-troll.png",
+        image: "Bellatrix.png",
         malus: {
             id: "no_hufflepuff",
             description: "Les cartes de Poufsouffle ne font aucun degat.",
